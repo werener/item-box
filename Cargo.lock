@@ -5461,6 +5461,7 @@ dependencies = [
  "dioxus",
  "fully_pub",
  "serde",
+ "serde_json",
  "uuid",
 ]
 

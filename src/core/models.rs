@@ -3,23 +3,33 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
 
-/// Represents a color in RGB.
+/// Tool represents the tool with all its information attached.
 #[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
-struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
+struct Tool {
+    id: Uuid,
+    name: String,
+    location: String,
+    price: f64,
+    folder: Option<Uuid>,
+    tags: Vec<Uuid>,
 }
-impl Color {
-    /// Returns hex representation of the color (without leading #)
-    pub fn to_hex(&self) -> String {
-        format!("{:02X}{:02X}{:02X}", self.r, self.g, self.b)
-    }
-}
-impl fmt::Display for Color {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:02X}{:02X}{:02X}", self.r, self.g, self.b)
+impl Tool {
+    pub fn new(
+        name: String,
+        location: String,
+        price: f64,
+        folder: Option<Uuid>,
+        tags: Vec<Uuid>,
+    ) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name,
+            location,
+            price,
+            folder,
+            tags,
+        }
     }
 }
 
@@ -63,32 +73,22 @@ impl Tag {
     }
 }
 
-/// Tool represents the tool with all its information attached.
+/// Represents a color in RGB.
 #[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
-struct Tool {
-    id: Uuid,
-    name: String,
-    location: String,
-    price: f64,
-    folder: Option<Uuid>,
-    tags: Vec<Uuid>,
+struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
 }
-impl Tool {
-    pub fn new(
-        name: String,
-        location: String,
-        price: f64,
-        folder: Option<Uuid>,
-        tags: Vec<Uuid>,
-    ) -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name,
-            location,
-            price,
-            folder,
-            tags,
-        }
+impl Color {
+    /// Returns hex representation of the color (without leading #)
+    pub fn to_hex(&self) -> String {
+        format!("{:02X}{:02X}{:02X}", self.r, self.g, self.b)
+    }
+}
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:02X}{:02X}{:02X}", self.r, self.g, self.b)
     }
 }
