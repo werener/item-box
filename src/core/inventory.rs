@@ -1,3 +1,5 @@
+use crate::core::builder::ToolBuilder;
+
 use super::models::*;
 use fully_pub::fully_pub;
 use serde::{Deserialize, Serialize};
@@ -20,11 +22,25 @@ impl Inventory {
         &mut self,
         name: String,
         location: String,
+        description: String,
         price: f64,
         folder_id: Option<Uuid>,
         tag_ids: Vec<Uuid>,
     ) -> Uuid {
-        let tool = Tool::new(name, location, price, folder_id, tag_ids);
+        let tool = ToolBuilder::new(name)
+            .location(location)
+            .description(description)
+            .price(price)
+            .folder(folder_id)
+            .tags(tag_ids)
+            .build();
+
+        let id = tool.id;
+        self.tools.push(tool);
+        id
+    }
+
+    fn add_tool_struct(&mut self, tool: Tool) -> Uuid {
         let id = tool.id;
         self.tools.push(tool);
         id

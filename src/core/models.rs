@@ -10,6 +10,7 @@ struct Tool {
     id: Uuid,
     name: String,
     location: Option<String>,
+    description: Option<String>,
     price: f64,
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
@@ -17,20 +18,16 @@ struct Tool {
 impl Tool {
     pub fn new(
         name: String,
-        location: String,
+        location: Option<String>,
+        description: Option<String>,
         price: f64,
         folder: Option<Uuid>,
         tags: Vec<Uuid>,
     ) -> Self {
         Self {
             id: Uuid::new_v4(),
-            location: {
-                if location == "" {
-                    None
-                } else {
-                    Some(location)
-                }
-            },
+            location,
+            description,
             name,
             price,
             folder,

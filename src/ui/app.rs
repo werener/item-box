@@ -4,13 +4,6 @@ use dioxus::prelude::*;
 // class: "bg-surface border border-surface-muted shadow-xl rounded-xl" - shadowed card
 #[component]
 pub fn App() -> Element {
-    let _t: Tool = Tool::new(
-        "Hammer".to_string(),
-        "Bottom drawer".to_string(),
-        500.0,
-        None,
-        vec![],
-    );
     rsx! {
         // metainfo
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
