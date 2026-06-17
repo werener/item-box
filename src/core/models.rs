@@ -9,7 +9,7 @@ use uuid::Uuid;
 struct Tool {
     id: Uuid,
     name: String,
-    location: String,
+    location: Option<String>,
     price: f64,
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
@@ -24,8 +24,14 @@ impl Tool {
     ) -> Self {
         Self {
             id: Uuid::new_v4(),
+            location: {
+                if location == "" {
+                    None
+                } else {
+                    Some(location)
+                }
+            },
             name,
-            location,
             price,
             folder,
             tags,
