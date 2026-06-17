@@ -10,12 +10,12 @@ fn dummy_color() -> Color {
 #[test]
 fn test_create_and_read() {
     let mut inv = Inventory::default();
-    let garage_id = inv.add_folder("Garage".to_string());
-    let power_tag_id = inv.add_tag("Power Tool".to_string(), dummy_color());
+    let garage_id = inv.add_folder("Garage");
+    let power_tag_id = inv.add_tag("Power Tool", dummy_color());
 
     let drill_id = inv.add_tool_struct(
-        ToolBuilder::new("Drill".to_string())
-            .location("Shelf 1".to_string())
+        ToolBuilder::new("Drill")
+            .location("Shelf 1")
             .price(99.99)
             .folder(Some(garage_id))
             .tags(vec![power_tag_id])
@@ -39,34 +39,34 @@ fn test_rename_operations() {
     let mut inv = Inventory::default();
     
     let tool_id = inv.add_tool_struct(
-        ToolBuilder::new("Old Drill".to_string())
-            .location("Shelf".to_string())
+        ToolBuilder::new("Old Drill")
+            .location("Shelf")
             .price(50.0)
             .build(),
     );
     
-    let folder_id = inv.add_folder("Old Garage".to_string());
-    let tag_id = inv.add_tag("Old Tag".to_string(), dummy_color());
+    let folder_id = inv.add_folder("Old Garage");
+    let tag_id = inv.add_tag("Old Tag", dummy_color());
 
-    assert!(inv.rename_tool(tool_id, "New Drill".to_string()), "Renaming existing tool should succeed");
+    assert!(inv.rename_tool(tool_id, "New Drill"), "Renaming existing tool should succeed");
     assert_eq!(inv.get_tool(tool_id).unwrap().name, "New Drill", "Tool name not updated");
 
-    assert!(inv.rename_folder(folder_id, "New Garage".to_string()), "Renaming existing folder should succeed");
+    assert!(inv.rename_folder(folder_id, "New Garage"), "Renaming existing folder should succeed");
     assert_eq!(inv.get_folder(folder_id).unwrap().name, "New Garage", "Folder name not updated");
 
-    assert!(inv.rename_tag(tag_id, "New Tag".to_string()), "Renaming existing tag should succeed");
+    assert!(inv.rename_tag(tag_id, "New Tag"), "Renaming existing tag should succeed");
     assert_eq!(inv.get_tag(tag_id).unwrap().name, "New Tag", "Tag name not updated");
 
     let fake_id = Uuid::new_v4();
-    assert!(!inv.rename_tool(fake_id, "Ghost".to_string()), "Renaming non-existent tool should fail");
-    assert!(!inv.rename_folder(fake_id, "Ghost".to_string()), "Renaming non-existent folder should fail");
-    assert!(!inv.rename_tag(fake_id, "Ghost".to_string()), "Renaming non-existent tag should fail");
+    assert!(!inv.rename_tool(fake_id, "Ghost"), "Renaming non-existent tool should fail");
+    assert!(!inv.rename_folder(fake_id, "Ghost"), "Renaming non-existent folder should fail");
+    assert!(!inv.rename_tag(fake_id, "Ghost"), "Renaming non-existent tag should fail");
 }
 
 #[test]
 fn test_recolor_tag() {
     let mut inv = Inventory::default();
-    let tag_id = inv.add_tag("Red Tag".to_string(), dummy_color());
+    let tag_id = inv.add_tag("Red Tag", dummy_color());
     let new_color = Color { r: 0, g: 255, b: 0 };
     
     assert!(inv.recolor_tag(tag_id, new_color.clone()), "Recoloring existing tag should succeed");
@@ -79,11 +79,11 @@ fn test_recolor_tag() {
 #[test]
 fn test_remove_folder_cleans_up_tools() {
     let mut inv = Inventory::default();
-    let folder_id = inv.add_folder("Workshop".to_string());
+    let folder_id = inv.add_folder("Workshop");
     
     let tool_id = inv.add_tool_struct(
-        ToolBuilder::new("Saw".to_string())
-            .location("Bench".to_string())
+        ToolBuilder::new("Saw")
+            .location("Bench")
             .price(50.0)
             .folder(Some(folder_id))
             .build(),
@@ -100,12 +100,12 @@ fn test_remove_folder_cleans_up_tools() {
 #[test]
 fn test_remove_tag_cleans_up_tools() {
     let mut inv = Inventory::default();
-    let tag1_id = inv.add_tag("Heavy".to_string(), dummy_color());
-    let tag2_id = inv.add_tag("Expensive".to_string(), dummy_color());
+    let tag1_id = inv.add_tag("Heavy", dummy_color());
+    let tag2_id = inv.add_tag("Expensive", dummy_color());
     
     let tool_id = inv.add_tool_struct(
-        ToolBuilder::new("Anvil".to_string())
-            .location("Floor".to_string())
+        ToolBuilder::new("Anvil")
+            .location("Floor")
             .price(200.0)
             .tags(vec![tag1_id, tag2_id])
             .build(),
@@ -122,11 +122,11 @@ fn test_remove_tag_cleans_up_tools() {
 #[test]
 fn test_serialization_roundtrip() {
     let mut inv = Inventory::default();
-    let folder_id = inv.add_folder("Garage".to_string());
+    let folder_id = inv.add_folder("Garage");
     
     inv.add_tool_struct(
-        ToolBuilder::new("Wrench".to_string())
-            .location("Drawer".to_string())
+        ToolBuilder::new("Wrench")
+            .location("Drawer")
             .price(25.5)
             .folder(Some(folder_id))
             .build(),

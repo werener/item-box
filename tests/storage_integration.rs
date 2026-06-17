@@ -31,12 +31,12 @@ fn test_save_and_load_roundtrip() {
     let storage = JsonFileStorage::with_custom_path(Some(temp.path.clone())).unwrap();
     let mut inventory = Inventory::default();
     
-    let folder_id = inventory.add_folder("Garage".to_string());
-    let tag_id = inventory.add_tag("Power Tool".to_string(), Color { r: 255, g: 0, b: 0 });
+    let folder_id = inventory.add_folder("Garage");
+    let tag_id = inventory.add_tag("Power Tool", Color { r: 255, g: 0, b: 0 });
     
     inventory.add_tool_struct(
-        ToolBuilder::new("Drill".to_string())
-            .location("Shelf 1".to_string())
+        ToolBuilder::new("Drill")
+            .location("Shelf 1")
             .price(99.99)
             .folder(Some(folder_id))
             .tags(vec![tag_id])
@@ -89,8 +89,8 @@ fn test_save_overwrites_existing_file() {
     storage.save(&inventory).expect("first save should succeed");
 
     inventory.add_tool_struct(
-        ToolBuilder::new("Hammer".to_string())
-            .location("Box".to_string())
+        ToolBuilder::new("Hammer")
+            .location("Box")
             .price(15.0)
             .build(),
     );

@@ -18,18 +18,18 @@ struct Inventory {
 /// CRUD
 impl Inventory {
     // Create
-    fn add_tool(
+    fn add_tool<S: Into<String>>(
         &mut self,
-        name: String,
-        location: String,
-        description: String,
+        name: S,
+        location: S,
+        description: S,
         price: f64,
         folder_id: Option<Uuid>,
         tag_ids: Vec<Uuid>,
     ) -> Uuid {
-        let tool = ToolBuilder::new(name)
-            .location(location)
-            .description(description)
+        let tool = ToolBuilder::new(name.into())
+            .location(location.into())
+            .description(description.into())
             .price(price)
             .folder(folder_id)
             .tags(tag_ids)
@@ -46,15 +46,15 @@ impl Inventory {
         id
     }
 
-    fn add_folder(&mut self, name: String) -> Uuid {
-        let folder = Folder::new(name);
+    fn add_folder<S: Into<String>>(&mut self, name: S) -> Uuid {
+        let folder = Folder::new(name.into());
         let id = folder.id;
         self.folders.push(folder);
         id
     }
 
-    fn add_tag(&mut self, name: String, color: Color) -> Uuid {
-        let tag = Tag::new(name, color);
+    fn add_tag<S: Into<String>>(&mut self, name: S, color: Color) -> Uuid {
+        let tag = Tag::new(name.into(), color);
         let id = tag.id;
         self.tags.push(tag);
         id
@@ -74,27 +74,27 @@ impl Inventory {
     }
 
     // Update
-    fn rename_tool(&mut self, tool_id: Uuid, new_name: String) -> bool {
+    fn rename_tool<S: Into<String>>(&mut self, tool_id: Uuid, new_name: S) -> bool {
         if let Some(tool) = self.tools.iter_mut().find(|t| t.id == tool_id) {
-            tool.name = new_name;
+            tool.name = new_name.into();
             true
         } else {
             false
         }
     }
 
-    fn rename_folder(&mut self, folder_id: Uuid, new_name: String) -> bool {
+    fn rename_folder<S: Into<String>>(&mut self, folder_id: Uuid, new_name: S) -> bool {
         if let Some(folder) = self.folders.iter_mut().find(|f| f.id == folder_id) {
-            folder.name = new_name;
+            folder.name = new_name.into();
             true
         } else {
             false
         }
     }
 
-    fn rename_tag(&mut self, tag_id: Uuid, new_name: String) -> bool {
+    fn rename_tag<S: Into<String>>(&mut self, tag_id: Uuid, new_name: S) -> bool {
         if let Some(tag) = self.tags.iter_mut().find(|t| t.id == tag_id) {
-            tag.name = new_name;
+            tag.name = new_name.into();
             true
         } else {
             false

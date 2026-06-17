@@ -12,52 +12,52 @@ pub struct ToolBuilder {
     tags: Vec<Uuid>,
 }
 
+#[fully_pub::fully_pub]
 impl ToolBuilder {
-    pub fn new(name: String) -> Self {
+    fn new<S: Into<String>>(name: S) -> Self {
         Self {
-            name,
+            name: name.into(),
             ..Default::default()
         }
     }
 
-    pub fn location(mut self, location: String) -> Self {
-        self.location = if location.trim().is_empty() {
+    fn location<S: Into<String>>(mut self, location: S) -> Self {
+        let loc = location.into();
+        self.location = if loc.trim().is_empty() {
             None
         } else {
-            Some(location)
+            Some(loc)
         };
         self
     }
 
-    pub fn description(mut self, description: String) -> Self {
-        self.description = if description.trim().is_empty() {
+    fn description<S: Into<String>>(mut self, description: S) -> Self {
+        let desc = description.into();
+        self.description = if desc.trim().is_empty() {
             None
         } else {
-            Some(description)
+            Some(desc)
         };
         self
     }
 
-    pub fn price(mut self, price: f64) -> Self {
-        if price < 0.0 {
-            return self;
-        }
+    fn price(mut self, price: f64) -> Self {
         self.price = price;
         self
     }
 
-    pub fn folder(mut self, folder: Option<Uuid>) -> Self {
+    fn folder(mut self, folder: Option<Uuid>) -> Self {
         self.folder = folder;
         self
     }
 
-    pub fn tags(mut self, tags: Vec<Uuid>) -> Self {
+    fn tags(mut self, tags: Vec<Uuid>) -> Self {
         self.tags = tags;
         self
     }
 
     /// Builds the resulting Tool struct.
-    pub fn build(self) -> Tool {
+    fn build(self) -> Tool {
         Tool {
             id: Uuid::new_v4(),
             name: self.name,
