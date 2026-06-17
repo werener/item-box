@@ -7,10 +7,16 @@ pub trait Storage {
     fn load(&self) -> Result<Inventory, StorageError>;
 }
 
+/// Desktop implementation of Storage trait.
+/// 
+/// Saves files into `json` format. 
+/// Uses a default system path under organization and application names "vtoobox".
+#[cfg(not(target_arch = "wasm32"))]
 pub struct JsonFileStorage {
     path: PathBuf,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl JsonFileStorage {
     pub fn new() -> Result<Self, StorageError> {
         Self::with_custom_path(None)
@@ -33,6 +39,7 @@ impl JsonFileStorage {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Storage for JsonFileStorage {
     fn save(&self, inventory: &Inventory) -> Result<(), StorageError> {
         let json = serde_json::to_string_pretty(inventory)?;
@@ -47,5 +54,72 @@ impl Storage for JsonFileStorage {
         let json = std::fs::read_to_string(&self.path)?;
         let inventory = serde_json::from_str(&json)?;
         Ok(inventory)
+    }
+}
+
+/// Web implementation of Storage trait.
+/// 
+/// Saves files, using browsers' built-in API for file storage.
+#[cfg(target_arch = "wasm32")]
+pub struct WebStorage {
+    key: String,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl WebStorage {
+    pub fn new() -> Self {
+        Self {
+            key: "vtoolbox_inventory".to_string(),
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Storage for WebStorage {
+    fn save(&self, inventory: &Inventory) -> Result<(), StorageError> {
+        let json = serde_json::to_string(inventory)?;
+        
+        let window = web_sys::window()
+            .ok_or_else(|| StorageError::WebStorage("No window object".to_string()))?;
+        
+        let storage = window.local_storage()
+            .map_err(|_| StorageError::WebStorage("Failed to get localStorage".to_string()))?
+            .ok_or_else(|| StorageError::WebStorage("localStorage not available".to_string()))?;
+        
+        storage.set_item(&self.key, &json)
+            .map_err(|_| StorageError::WebStorage("Failed to save to localStorage".to_string()))?;
+        
+        Ok(())
+    }
+
+    fn load(&self) -> Result<Inventory, StorageError> {
+        let window = web_sys::window()
+            .ok_or_else(|| StorageError::WebStorage("No window object".to_string()))?;
+        
+        let storage = window.local_storage()
+            .map_err(|_| StorageError::WebStorage("Failed to get localStorage".to_string()))?
+            .ok_or_else(|| StorageError::WebStorage("localStorage not available".to_string()))?;
+        
+        match storage.get_item(&self.key) {
+            Ok(Some(json)) => {
+                let inventory = serde_json::from_str(&json)?;
+                Ok(inventory)
+            }
+            Ok(None) => Ok(Inventory::default()),
+            Err(_) => Err(StorageError::WebStorage("Failed to read from localStorage".to_string())),
+        }
+    }
+}
+
+// Factory function
+pub fn create_storage() -> Result<Box<dyn Storage>, StorageError> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        Ok(Box::new(WebStorage::new()))
+    }
+    
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        Ok(Box::new(JsonFileStorage::new()?))
     }
 }

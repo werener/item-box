@@ -20,3 +20,6 @@ default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3.100", features = ["Window", "Storage"] }

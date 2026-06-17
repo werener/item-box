@@ -7,4 +7,7 @@ pub enum StorageError {
     
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
+    
+    #[error("Web storage error: {0}")]
+    WebStorage(String),
 }
