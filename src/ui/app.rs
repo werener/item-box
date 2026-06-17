@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 // class: "bg-surface border border-surface-muted shadow-xl rounded-xl" - shadowed card
 #[component]
 pub fn App() -> Element {
-    let t: Tool = Tool::new(
+    let _t: Tool = Tool::new(
         "Hammer".to_string(),
         "Bottom drawer".to_string(),
         500.0,
