@@ -4,10 +4,10 @@ use thiserror::Error;
 pub enum StorageError {
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
-    
+
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
-    
+
     #[error("Web storage error: {0}")]
     WebStorage(String),
 }

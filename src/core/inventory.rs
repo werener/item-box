@@ -1,4 +1,4 @@
-use crate::core::builder::ToolBuilder;
+use crate::core::builder::ItemBuilder;
 
 use super::models::*;
 use fully_pub::fully_pub;
@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Inventory represents a collection of all available models
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[fully_pub]
 struct Inventory {
-    tools: Vec<Tool>,
+    items: Vec<Item>,
     folders: Vec<Folder>,
     tags: Vec<Tag>,
 }
@@ -18,7 +18,7 @@ struct Inventory {
 /// CRUD
 impl Inventory {
     // Create
-    fn add_tool<S: Into<String>>(
+    fn add_item<S: Into<String>>(
         &mut self,
         name: S,
         location: S,
@@ -27,7 +27,7 @@ impl Inventory {
         folder_id: Option<Uuid>,
         tag_ids: Vec<Uuid>,
     ) -> Uuid {
-        let tool = ToolBuilder::new(name.into())
+        let item = ItemBuilder::new(name.into())
             .location(location.into())
             .description(description.into())
             .price(price)
@@ -35,14 +35,14 @@ impl Inventory {
             .tags(tag_ids)
             .build();
 
-        let id = tool.id;
-        self.tools.push(tool);
+        let id = item.id;
+        self.items.push(item);
         id
     }
 
-    fn add_tool_struct(&mut self, tool: Tool) -> Uuid {
-        let id = tool.id;
-        self.tools.push(tool);
+    fn add_item_struct(&mut self, item: Item) -> Uuid {
+        let id = item.id;
+        self.items.push(item);
         id
     }
 
@@ -61,8 +61,8 @@ impl Inventory {
     }
 
     // Read
-    fn get_tool(&self, id: Uuid) -> Option<&Tool> {
-        self.tools.iter().find(|t| t.id == id)
+    fn get_item(&self, id: Uuid) -> Option<&Item> {
+        self.items.iter().find(|t| t.id == id)
     }
 
     fn get_folder(&self, id: Uuid) -> Option<&Folder> {
@@ -74,9 +74,9 @@ impl Inventory {
     }
 
     // Update
-    fn rename_tool<S: Into<String>>(&mut self, tool_id: Uuid, new_name: S) -> bool {
-        if let Some(tool) = self.tools.iter_mut().find(|t| t.id == tool_id) {
-            tool.name = new_name.into();
+    fn rename_item<S: Into<String>>(&mut self, item_id: Uuid, new_name: S) -> bool {
+        if let Some(item) = self.items.iter_mut().find(|t| t.id == item_id) {
+            item.name = new_name.into();
             true
         } else {
             false
@@ -111,16 +111,16 @@ impl Inventory {
     }
 
     // Delete
-    fn remove_tool(&mut self, tool_id: Uuid) {
-        self.tools.retain(|t| t.id != tool_id)
+    fn remove_item(&mut self, item_id: Uuid) {
+        self.items.retain(|t| t.id != item_id)
     }
 
     fn remove_folder(&mut self, folder_id: Uuid) {
         self.folders.retain(|f| f.id != folder_id);
 
-        for tool in &mut self.tools {
-            if tool.folder == Some(folder_id) {
-                tool.folder = None;
+        for item in &mut self.items {
+            if item.folder == Some(folder_id) {
+                item.folder = None;
             }
         }
     }
@@ -128,8 +128,8 @@ impl Inventory {
     fn remove_tag(&mut self, tag_id: Uuid) {
         self.tags.retain(|t| t.id != tag_id);
 
-        for tool in &mut self.tools {
-            tool.tags.retain(|id| *id != tag_id);
+        for item in &mut self.items {
+            item.tags.retain(|id| *id != tag_id);
         }
     }
 }

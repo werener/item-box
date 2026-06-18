@@ -11,18 +11,18 @@ module.exports = {
                     muted: '#1E3A8A',
                 },
                 secondary: {
-                    DEFAULT: '#64748B',
+                    DEFAULT: '#656565',
                     hover: '#475569',
                     muted: '#5a79a8',
                 },
                 accent: {
-                    DEFAULT: '#489dff',
+                    DEFAULT: '#95B8F1',
                     hover: '#1b86ff',
-                    muted: '#5c839e',
+                    muted: '#C3E1FF',
                 },
                 surface: {
-                    DEFAULT: '#fdfbec',
-                    muted: '#f5eacb',
+                    DEFAULT: '#fffefd',
+                    accented: '#FFE7C3',
                 },
             },
         },

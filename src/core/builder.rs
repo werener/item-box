@@ -1,9 +1,9 @@
-use super::models::Tool;
+use super::models::Item;
 use uuid::Uuid;
 
 /// Builder pattern for constructing Tool.
 #[derive(Default, Debug)]
-pub struct ToolBuilder {
+pub struct ItemBuilder {
     name: String,
     location: Option<String>,
     description: Option<String>,
@@ -13,7 +13,7 @@ pub struct ToolBuilder {
 }
 
 #[fully_pub::fully_pub]
-impl ToolBuilder {
+impl ItemBuilder {
     fn new<S: Into<String>>(name: S) -> Self {
         Self {
             name: name.into(),
@@ -56,9 +56,9 @@ impl ToolBuilder {
         self
     }
 
-    /// Builds the resulting Tool struct.
-    fn build(self) -> Tool {
-        Tool {
+    /// Builds the resulting Item struct.
+    fn build(self) -> Item {
+        Item {
             id: Uuid::new_v4(),
             name: self.name,
             location: self.location,

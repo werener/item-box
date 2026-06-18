@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
 
-/// Tool represents the tool with all its information attached.
+/// Item represents any item with all its information attached.
 #[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
-struct Tool {
+struct Item {
     id: Uuid,
     name: String,
     location: Option<String>,
@@ -15,7 +15,7 @@ struct Tool {
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
 }
-impl Tool {
+impl Item {
     pub fn new(
         name: String,
         location: Option<String>,
@@ -36,10 +36,10 @@ impl Tool {
     }
 }
 
-/// Folder represents a collection of tools, organized into one group by an arbitrary feature.
+/// Folder represents a collection of items, organized into one group by an arbitrary feature.
 ///
-/// Multiple tools can have the same folder.
-/// One tool can have only one folder.
+/// Multiple items can have the same folder.
+/// One item can have only one folder.
 #[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
 struct Folder {
@@ -55,10 +55,10 @@ impl Folder {
     }
 }
 
-/// Tag represents an affiliation of a tool to a particular group.
+/// Tag represents an affiliation of a item to a particular group.
 ///
-/// Multiple tools can have the same tag.
-/// One tool can have multiple tags.
+/// Multiple items can have the same tag.
+/// One item can have multiple tags.
 #[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
 struct Tag {

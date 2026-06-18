@@ -1,3 +1,3 @@
 pub mod core;
-pub mod ui;
 pub mod error;
+pub mod ui;
