@@ -37,7 +37,7 @@ pub fn App() -> Element {
         // metainfo
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
-        div { class: "min-h-screen w-full bg-surface",
+        div { class: "min-h-screen w-full bg-surface-muted",
             ItemGrid { inventory }
         }
     }

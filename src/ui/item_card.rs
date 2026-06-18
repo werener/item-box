@@ -137,7 +137,7 @@ pub fn ItemCard(item: Item, tags: Vec<Tag>, folder: Option<Folder>) -> Element {
     rsx! {
         div {
             class: "w-full aspect-[9/14] bg-surface
-            border-2 border-secondary rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.1)]
+            rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
             flex flex-col overflow-hidden",
             draggable: "false",
             ondragstart: move |_| (),
@@ -164,22 +164,22 @@ pub fn ItemCard(item: Item, tags: Vec<Tag>, folder: Option<Folder>) -> Element {
                         }
                     }
                     if let Some(description) = &item.description {
-                        p { class: "text-xs text-secondary truncate", "{description}" }
+                        p { class: "text-xs text-secondary line-clamp-2", "{description}" }
                     }
                 }
                 // tags
                 div { class: "flex px-0.5 pb-0.5 gap-0.5 mt-auto items-center",
                     for tag in tags.iter().take(3) {
                         span {
-                            class: "text-[10px] px-1 py-0.5 rounded-xl truncate whitespace-nowrap 
+                            class: "text-[12px] px-1 py-0.25 rounded-xl truncate whitespace-nowrap 
                             flex-1 max-w-[10ch]",
                             style: "background-color: #{tag.color.to_hex()};",
                             "{tag.name}"
                         }
                     }
                     if tags.len() > 3 {
-                        button { class: "text-[10px] w-[18px] py-0.5 h-[18px] rounded-full
-                                bg-surface-muted text-primary border-2 border-secondary
+                        button { class: "text-[12px] w-[18px] py-0.5 h-[18px] rounded-full
+                                bg-surface-muted text-primary
                                 flex items-center justify-center shrink-0",
                             "+{tags.len() - 3}"
                         }

@@ -22,6 +22,7 @@ module.exports = {
                 },
                 surface: {
                     DEFAULT: '#fffefd',
+                    muted: '#f3f3f3',
                     accented: '#FFE7C3',
                 },
             },
