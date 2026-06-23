@@ -1,6 +1,6 @@
 use super::inventory::Inventory;
 use crate::error::StorageError;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 pub trait Storage {
     fn save(&self, inventory: &Inventory) -> Result<(), StorageError>;
@@ -117,14 +117,14 @@ impl Storage for WebStorage {
 }
 
 // Factory function
-pub fn create_storage() -> Result<Box<dyn Storage>, StorageError> {
+pub fn create_storage() -> Result<Arc<dyn Storage>, StorageError> {
     #[cfg(target_arch = "wasm32")]
     {
-        Ok(Box::new(WebStorage::new()))
+        Ok(Arc::new(WebStorage::new()))
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        Ok(Box::new(JsonFileStorage::new()?))
+        Ok(Arc::new(JsonFileStorage::new()?))
     }
 }
