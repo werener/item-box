@@ -12,7 +12,7 @@ pub fn ControlPanel() -> Element {
     let mut search_query = use_signal(|| String::new());
 
     rsx! {
-        div { class: "flex items-center m-1 gap-2 p-1",
+        div { class: "flex items-center gap-2 p-1",
             // Left-aligned
             div { class: "flex items-center gap-2 flex-1 min-w-0",
                 button {
