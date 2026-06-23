@@ -7,13 +7,13 @@ module.exports = {
             colors: {
                 primary: {
                     DEFAULT: '#000f0f',
-                    hover: '#2563EB',
-                    muted: '#1E3A8A',
+                    hover: '#000000',
+                    muted: '#333a3a',
                 },
                 secondary: {
                     DEFAULT: '#656565',
-                    hover: '#475569',
-                    muted: '#5a79a8',
+                    hover: '#a0b1bd',
+                    muted: '#d6d6d6',
                 },
                 accent: {
                     DEFAULT: '#95B8F1',
@@ -22,7 +22,7 @@ module.exports = {
                 },
                 surface: {
                     DEFAULT: '#fffefd',
-                    muted: '#f3f3f3',
+                    muted: '#f3f1ee',
                     accented: '#FFE7C3',
                 },
             },
