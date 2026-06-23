@@ -104,21 +104,21 @@ pub fn ImageSlider(images: Vec<String>) -> Element {
             // slider controls
             div { class: "flex justify-between items-center px-2 py-0.5",
                 button {
-                    class: "text-sm text-primary",
+                    class: "text-sm text-primary font-semibold hover:text-accent-hover",
                     onclick: move |_| state.prev(images_len),
                     "<"
                 }
                 div { class: "flex gap-1",
                     for (index , _) in images.iter().enumerate() {
                         button {
-                            class: "w-1.5 h-1.5 rounded-full",
-                            class: if index == (state.current_index)() { "bg-primary" } else { "bg-secondary" },
+                            class: "w-1.5 h-1.5 rounded-full ",
+                            class: if index == (state.current_index)() { "bg-accent-hover" } else { "bg-secondary hover:bg-accent" },
                             onclick: move |_| state.current_index.set(index),
                         }
                     }
                 }
                 button {
-                    class: "text-sm text-primary",
+                    class: "text-sm text-primary font-semibold hover:text-accent-hover",
                     onclick: move |_| state.next(images_len),
                     ">"
                 }
@@ -171,16 +171,17 @@ pub fn ItemCard(item: Item, tags: Vec<Tag>, folder: Option<Folder>) -> Element {
                 div { class: "flex px-0.5 pb-0.5 gap-0.5 mt-auto items-center",
                     for tag in tags.iter().take(3) {
                         span {
-                            class: "text-[12px] px-1 py-0.25 rounded-xl truncate whitespace-nowrap 
-                            flex-1 max-w-[10ch]",
+                            class: "text-[12px] px-1 py-0.25",
+                            class: "rounded-xl truncate whitespace-nowrap flex-1 max-w-[10ch]",
                             style: "background-color: #{tag.color.to_hex()};",
                             "{tag.name}"
                         }
                     }
                     if tags.len() > 3 {
-                        button { class: "text-[12px] w-[18px] py-0.5 h-[18px] rounded-full
-                                bg-surface-muted text-primary
-                                flex items-center justify-center shrink-0",
+                        button {
+                            class: "text-[12px] text-primary w-[18px] py-0.5 h-[18px]",
+                            class: "bg-surface-muted hover:text-primary-hover hover:bg-accent",
+                            class: "flex items-center justify-center shrink-0 rounded-full",
                             "+{tags.len() - 3}"
                         }
                     }
