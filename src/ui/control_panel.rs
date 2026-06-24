@@ -22,7 +22,6 @@ pub fn ControlPanel() -> Element {
                     title: "Filter",
 
                     FunnelIcon { class: "h-7 w-7 text-inherit" }
-                
                 }
 
                 // TODO: add styling to the search field
@@ -97,6 +96,15 @@ pub fn ControlPanel() -> Element {
                     },
                     "⟲"
                     span { class: "hidden sm:inline", "Sync" }
+                }
+
+                button {
+                    class: "h-7 w-7 sm:w-20 text-primary-muted font-semibold",
+                    class: "rounded-md flex justify-center items-center gap-1",
+                    class: "hover:bg-accent hover:text-primary-hover",
+                    title: "Other",
+                    "⋯"
+                    span { class: "hidden sm:inline", "Other" }
                 }
             }
         }
