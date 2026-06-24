@@ -5,9 +5,8 @@ use dioxus::prelude::*;
 use std::sync::Arc;
 
 #[component]
-pub fn ControlPanel() -> Element {
+pub fn ControlPanel(inventory: Signal<Inventory> ) -> Element {
     let storage: Arc<dyn Storage> = use_context();
-    let mut inventory: Signal<Inventory> = use_context();
 
     let mut search_query = use_signal(|| String::new());
 

@@ -10,14 +10,13 @@ pub fn App() -> Element {
     let inventory = use_signal(|| storage.load().unwrap_or_default());
 
     use_context_provider(|| storage);
-    use_context_provider(|| inventory);
 
     rsx! {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
         div { class: "min-h-screen w-full bg-surface-muted",
-            ControlPanel {}
-            ItemGrid {}
+            ControlPanel { inventory }
+            ItemGrid { inventory }
         }
     }
 }

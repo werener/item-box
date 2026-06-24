@@ -4,8 +4,7 @@ use crate::ui::item_card::ItemCard;
 use dioxus::prelude::*;
 
 #[component]
-pub fn ItemGrid() -> Element {
-    let inventory: Signal<Inventory> = use_context();
+pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center",
             for item in inventory.read().items.iter() {
