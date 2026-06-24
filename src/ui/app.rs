@@ -1,6 +1,7 @@
 // app.rs
 use crate::core::storage::create_storage;
 use crate::ui::control_panel::ControlPanel;
+use crate::ui::header::Header;
 use crate::ui::item_grid::ItemGrid;
 use dioxus::prelude::*;
 
@@ -15,6 +16,7 @@ pub fn App() -> Element {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
         div { class: "min-h-screen w-full bg-surface-muted",
+            Header { inventory }
             ControlPanel { inventory }
             ItemGrid { inventory }
         }
