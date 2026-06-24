@@ -21,8 +21,8 @@ module.exports = {
                     muted: '#C3E1FF',
                 },
                 surface: {
-                    DEFAULT: '#fffefd',
-                    muted: '#f3f1ee',
+                    DEFAULT: '#f3f1ee',
+                    muted: '#fffefd',
                     accented: '#FFE7C3',
                 },
             },

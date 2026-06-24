@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 use std::sync::Arc;
 
 #[component]
-pub fn ControlPanel(inventory: Signal<Inventory> ) -> Element {
+pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
     let storage: Arc<dyn Storage> = use_context();
 
     let mut search_query = use_signal(|| String::new());
@@ -25,7 +25,7 @@ pub fn ControlPanel(inventory: Signal<Inventory> ) -> Element {
 
                 // TODO: add styling to the search field
                 input {
-                    class: "px-2 py-1 text-sm text-primary  bg-surface-muted min-w-16 border-2 border-secondary-muted",
+                    class: "px-2 py-1 text-sm text-primary bg-surface min-w-16 border-2 border-secondary-muted",
                     class: "rounded-md shrink",
                     class: "focus:border-accent focus:outline-none",
                     placeholder: "Поиск...",
@@ -50,7 +50,13 @@ pub fn ControlPanel(inventory: Signal<Inventory> ) -> Element {
                     class: "rounded-md flex justify-center items-center gap-1",
                     class: "hover:bg-accent hover:text-primary-hover",
                     title: "New folder",
+                    onclick: move |_| {
+                        inventory
+                            .write()
+                            .add_folder("New folder");
+                    },
                     "🖿"
+
                     span { class: "hidden md:inline", "Folder" }
                 }
 

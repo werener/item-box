@@ -67,7 +67,7 @@ pub fn ImageSlider(images: Vec<String>) -> Element {
 
             // Image with a swiping feature
             div {
-                class: "flex-1 bg-surface flex items-center justify-center overflow-hidden",
+                class: "flex-1 flex items-center justify-center overflow-hidden",
 
                 // mobile implementation
                 ontouchstart: move |e: Event<TouchData>| {
@@ -136,7 +136,7 @@ pub fn ItemCard(item: Item, tags: Vec<Tag>, folder: Option<Folder>) -> Element {
     ];
     rsx! {
         div {
-            class: "w-full aspect-[9/14] bg-surface
+            class: "w-full aspect-[9/14] bg-surface-muted
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
             flex flex-col overflow-hidden",
             draggable: "false",
@@ -180,7 +180,7 @@ pub fn ItemCard(item: Item, tags: Vec<Tag>, folder: Option<Folder>) -> Element {
                     if tags.len() > 3 {
                         button {
                             class: "text-[12px] text-primary w-[18px] py-0.5 h-[18px]",
-                            class: "bg-surface-muted hover:text-primary-hover hover:bg-accent",
+                            class: "bg-surface hover:text-primary-hover hover:bg-accent",
                             class: "flex items-center justify-center shrink-0 rounded-full",
                             "+{tags.len() - 3}"
                         }
