@@ -15,9 +15,7 @@ pub fn App() -> Element {
     rsx! {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
-        div {
-            class: "min-h-screen w-full bg-surface",
-            style: "overflow-y: hidden",
+        div { class: "h-screen w-full bg-surface overflow-y-auto",
             Header { inventory }
             ControlPanel { inventory }
             ItemGrid { inventory }

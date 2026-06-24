@@ -18,12 +18,15 @@ module.exports = {
                 accent: {
                     DEFAULT: '#95B8F1',
                     hover: '#1b86ff',
-                    muted: '#C3E1FF',
+                    muted: '#c3e1ff',
                 },
                 surface: {
                     DEFAULT: '#f3f1ee',
                     muted: '#fffefd',
-                    accented: '#FFE7C3',
+                    accented: {
+                        DEFAULT: '#ffe7c3',
+                        muted: '#fde3b9'
+                    },
                 },
             },
         },
