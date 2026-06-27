@@ -1,3 +1,3 @@
 pub use super::{
-    control_panel::ControlPanel, header::Header, item_card::ItemCard, item_grid::ItemGrid,
+    control_panel::ControlPanel, header::Header, item_grid::ItemGrid,
 };

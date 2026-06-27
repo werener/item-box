@@ -1,6 +1,5 @@
-use crate::core::inventory::Inventory;
+use crate::{core::inventory::Inventory, ui::state::AppState};
 use dioxus::{document::eval, prelude::*};
-use uuid::Uuid;
 
 /// Centers the container view around the chosen element.
 pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
@@ -32,8 +31,9 @@ pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
 }
 
 #[component]
-pub fn Header(inventory: Signal<Inventory>) -> Element {    
-    let mut selected_folder = use_signal(|| None::<Uuid>);
+pub fn Header(inventory: Signal<Inventory>) -> Element {
+    let app_state: AppState = use_context();
+    let mut selected_folder = app_state.selected_folder;
 
     use_scroll_into_center(selected_folder, "folders-scroll", "folder-");
 
@@ -51,14 +51,14 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                                    const container = document.getElementById('folders-scroll');
-                                                    if (container) {{
-                                                        container.scrollBy({{
-                                                            left: {delta_y},
-                                                            behavior: 'smooth'
-                                                        }});
-                                                    }}
-                                                    "#,
+                                const container = document.getElementById('folders-scroll');
+                                if (container) {{
+                                    container.scrollBy({{
+                                        left: {delta_y},
+                                        behavior: 'smooth'
+                                    }});
+                                }}
+                                "#,
                             ),
                         )
                         .await;
