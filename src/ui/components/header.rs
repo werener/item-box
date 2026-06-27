@@ -1,4 +1,4 @@
-use crate::{core::inventory::Inventory, ui::state::AppState};
+use crate::{core::models::Folder, ui::state::AppState};
 use dioxus::{document::eval, prelude::*};
 
 /// Centers the container view around the chosen element.
@@ -31,7 +31,7 @@ pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
 }
 
 #[component]
-pub fn Header(inventory: Signal<Inventory>) -> Element {
+pub fn Header(folders: Vec<Folder>) -> Element {
     let app_state: AppState = use_context();
     let mut selected_folder = app_state.selected_folder;
 
@@ -51,20 +51,20 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                const container = document.getElementById('folders-scroll');
-                                if (container) {{
-                                    container.scrollBy({{
-                                        left: {delta_y},
-                                        behavior: 'smooth'
-                                    }});
-                                }}
-                                "#,
+                                                const container = document.getElementById('folders-scroll');
+                                                if (container) {{
+                                                    container.scrollBy({{
+                                                        left: {delta_y},
+                                                        behavior: 'smooth'
+                                                    }});
+                                                }}
+                                                "#,
                             ),
                         )
                         .await;
                 });
             },
-            for folder in inventory.read().folders.iter() {
+            for folder in folders.iter() {
                 {
                     let folder_id = folder.id;
                     rsx! {

@@ -11,6 +11,8 @@ pub fn App() -> Element {
 
     let inventory = use_signal(|| storage.load().unwrap_or_default());
 
+    let folders = inventory.read().folders.clone();
+
     use_context_provider(|| storage);
     use_context_provider(|| app_state);
 
@@ -18,7 +20,7 @@ pub fn App() -> Element {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
         div { class: "h-screen w-full bg-surface overflow-y-auto",
-            Header { inventory }
+            Header { folders }
             ControlPanel { inventory }
             ItemGrid { inventory }
         }
