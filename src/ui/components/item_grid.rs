@@ -1,6 +1,6 @@
 use crate::core::inventory::Inventory;
 use crate::core::models::{Folder, Tag};
-use crate::ui::item_card::ItemCard;
+use super::item_card::ItemCard;
 use dioxus::prelude::*;
 
 #[component]

@@ -1,8 +1,6 @@
 // app.rs
 use crate::core::storage::create_storage;
-use crate::ui::control_panel::ControlPanel;
-use crate::ui::header::Header;
-use crate::ui::item_grid::ItemGrid;
+use super::components::prelude::*;
 use dioxus::prelude::*;
 
 #[component]

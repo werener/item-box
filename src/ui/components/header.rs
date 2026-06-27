@@ -32,7 +32,7 @@ pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
 }
 
 #[component]
-pub fn Header(inventory: Signal<Inventory>) -> Element {
+pub fn Header(inventory: Signal<Inventory>) -> Element {    
     let mut selected_folder = use_signal(|| None::<Uuid>);
 
     use_scroll_into_center(selected_folder, "folders-scroll", "folder-");
@@ -51,14 +51,14 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                    const container = document.getElementById('folders-scroll');
-                                    if (container) {{
-                                        container.scrollBy({{
-                                            left: {delta_y},
-                                            behavior: 'smooth'
-                                        }});
-                                    }}
-                                    "#,
+                                                    const container = document.getElementById('folders-scroll');
+                                                    if (container) {{
+                                                        container.scrollBy({{
+                                                            left: {delta_y},
+                                                            behavior: 'smooth'
+                                                        }});
+                                                    }}
+                                                    "#,
                             ),
                         )
                         .await;
