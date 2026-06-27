@@ -15,8 +15,10 @@ struct Item {
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
 }
+
+#[fully_pub]
 impl Item {
-    pub fn new(
+    fn new(
         name: String,
         location: Option<String>,
         description: Option<String>,
@@ -32,6 +34,21 @@ impl Item {
             price,
             folder,
             tags,
+        }
+    }
+
+    fn location(&self) -> String {
+        if let Some(location) = self.location.clone() {
+            return location;
+        } else {
+            return "".to_string();
+        }
+    }
+    fn description(&self) -> String {
+        if let Some(description) = self.description.clone() {
+            return description;
+        } else {
+            return "".to_string();
         }
     }
 }

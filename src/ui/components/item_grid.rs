@@ -10,9 +10,8 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
 
     let filtered_items = use_memo(move || {
         let inv = inventory.read();
-        let selected_folder = app_state.selected_folder;
         
-        match selected_folder() {
+        match (app_state.selected_folder)() {
             Some(folder_id) => inv
                 .items
                 .iter()
