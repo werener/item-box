@@ -4,6 +4,10 @@ use crate::core::storage::Storage;
 use dioxus::prelude::*;
 use std::sync::Arc;
 
+const BUTTON_CLASS: &str = "h-7 w-7 font-semibold text-primary-muted
+            rounded-md flex justify-center items-center gap-1
+            hover:bg-accent hover:text-primary-hover";
+
 #[component]
 pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
     let storage: Arc<dyn Storage> = use_context();
@@ -15,19 +19,19 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
             // Left-aligned
             div { class: "flex items-center gap-2 flex-1 min-w-0",
                 button {
-                    class: "h-7 w-7 p-1.5 text-primary-muted font-semibold",
-                    class: "rounded-md flex justify-center items-center gap-1",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} lg:w-20",
                     title: "Filter",
-
-                    FunnelIcon { class: "h-7 w-7 text-inherit" }
+                    onclick: move |_| {},
+                    FunnelIcon { class: "h-4 w-4 text-inherit" }
+                    span { class: "hidden lg:inline", "Filter" }
                 }
 
                 // TODO: add styling to the search field
                 input {
-                    class: "px-2 py-1 text-sm text-primary bg-surface min-w-16 border-2 border-secondary-muted",
-                    class: "rounded-md shrink",
+                    class: "px-2 py-1 text-sm text-primary bg-surface min-w-16",
+                    class: "rounded-md shrink border-2 border-secondary-muted",
                     class: "focus:border-accent focus:outline-none",
+
                     placeholder: "Поиск...",
                     value: "{search_query}",
                     oninput: move |e| search_query.set(e.value()),
@@ -37,18 +41,15 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
             // Right-aligned
             div { class: "flex items-center gap-2 shrink-0",
                 button {
-                    class: "h-7 w-7 md:w-14 text-primary-muted font-semibold",
-                    class: "rounded-md flex justify-center items-center gap-1",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} md:w-14",
                     title: "New Tag",
+                    onclick: move |_| {},
                     "#"
                     span { class: "hidden md:inline", "Tag" }
                 }
 
                 button {
-                    class: "h-7 w-7 md:w-20 text-primary-muted font-semibold",
-                    class: "rounded-md flex justify-center items-center gap-1",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} md:w-20",
                     title: "New folder",
                     onclick: move |_| {
                         inventory
@@ -56,14 +57,11 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
                             .add_folder("New folder");
                     },
                     "🖿"
-
                     span { class: "hidden md:inline", "Folder" }
                 }
 
                 button {
-                    class: "h-7 w-7 md:w-16 text-primary-muted ",
-                    class: "rounded-md flex justify-center items-center gap-1 font-semibold",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} md:w-16",
                     title: "New item",
                     onclick: move |_| {
                         inventory
@@ -75,9 +73,7 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "h-7 w-7 sm:w-24 text-primary-muted font-semibold",
-                    class: "rounded-md flex justify-center items-center gap-1",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} sm:w-24",
                     title: "Reverse",
                     onclick: {
                         let storage = storage.clone();
@@ -92,9 +88,7 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "h-7 w-7 sm:w-16 text-primary-muted font-semibold",
-                    class: "rounded-md flex justify-center items-center gap-1",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} sm:w-16",
                     title: "Sync",
                     onclick: move |_| {
                         let _ = storage.save(&inventory());
@@ -104,10 +98,9 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "h-7 w-7 sm:w-20 text-primary-muted font-semibold",
-                    class: "rounded-md flex justify-center items-center gap-1",
-                    class: "hover:bg-accent hover:text-primary-hover",
+                    class: "{BUTTON_CLASS} sm:w-20",
                     title: "Other",
+                    onclick: move |_| {},
                     "⋯"
                     span { class: "hidden sm:inline", "Other" }
                 }
