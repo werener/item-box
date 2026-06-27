@@ -13,7 +13,7 @@ pub fn ItemCard(item: Item, tags: Vec<Tag>, folder: Option<Folder>) -> Element {
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
             flex flex-col overflow-hidden",
 
-            div { class: "h-[65%] w-full overflow-hidden select-none",
+            div { class: "h-[65%] select-none",
                 ImageSlider { images }
             }
 
@@ -75,9 +75,27 @@ struct ImageSliderState {
 }
 
 impl ImageSliderState {
+    fn new(images: Vec<String>) -> Self {
+        let current_index = use_signal(|| 0);
+        let touch_start_x = use_signal(|| None);
+        let current_image = use_memo(move || {
+            images
+                .get(current_index())
+                .cloned()
+                .unwrap_or_else(|| asset!("/assets/images/tool-placeholder.png").to_string())
+        });
+
+        Self {
+            current_index,
+            current_image,
+            touch_start_x,
+        }
+    }
+    
     fn next(&mut self, total_images: usize) {
         (self.current_index).set(((self.current_index)() + 1) % total_images);
     }
+    
     fn prev(&mut self, total_images: usize) {
         let new_index = if (self.current_index)() == 0 {
             total_images - 1
@@ -100,23 +118,6 @@ impl ImageSliderState {
     }
 }
 
-fn use_image_slider(images: Vec<String>) -> ImageSliderState {
-    let current_index = use_signal(|| 0);
-    let touch_start_x = use_signal(|| None);
-    let current_image = use_memo(move || {
-        images
-            .get(current_index())
-            .cloned()
-            .unwrap_or_else(|| asset!("/assets/images/tool-placeholder.png").to_string())
-    });
-
-    ImageSliderState {
-        current_index,
-        current_image,
-        touch_start_x,
-    }
-}
-
 /// ImageSlider is a component that renders an of images and a representation of currently chosen one.
 ///
 /// TODO:
@@ -126,7 +127,7 @@ fn use_image_slider(images: Vec<String>) -> ImageSliderState {
 #[component]
 pub fn ImageSlider(images: Vec<String>) -> Element {
     let images_len = images.len();
-    let mut state = use_image_slider(images.clone());
+    let mut state = ImageSliderState::new(images.clone());
 
     rsx! {
         div { class: "w-full h-full flex flex-col",
