@@ -1,12 +1,13 @@
 // src/ui/components/control_panel.rs
 use crate::core::inventory::Inventory;
 use crate::core::storage::Storage;
+use super::icons::FunnelIcon;
 use dioxus::prelude::*;
 use std::sync::Arc;
 
 const BUTTON_CLASS: &str = "h-7 w-7 font-semibold text-primary-muted
             rounded-md flex justify-center items-center gap-1
-            hover:bg-accent hover:text-primary-hover";
+            hover:bg-accent hover:text-primary-hover transition-colors";
 
 #[component]
 pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
@@ -17,12 +18,12 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "flex items-center gap-2 p-1",
             // Left-aligned
-            div { class: "flex items-center gap-2 flex-1 min-w-0",
+            div { class: "flex items-center gap-2 flex-1 min-w-0 h-4 w-4",
                 button {
                     class: "{BUTTON_CLASS} lg:w-20",
                     title: "Filter",
                     onclick: move |_| {},
-                    FunnelIcon { class: "h-4 w-4 text-inherit" }
+                    FunnelIcon { class: "h-5 w-5" }
                     span { class: "hidden lg:inline", "Filter" }
                 }
 
@@ -105,26 +106,6 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
                     span { class: "hidden sm:inline", "Other" }
                 }
             }
-        }
-    }
-}
-
-/// Custom icon of a filter/funnel (8x8).
-#[component]
-pub fn FunnelIcon(#[props(extends = SvgAttributes)] attributes: Vec<Attribute>) -> Element {
-    rsx! {
-        svg {
-            xmlns: "http://www.w3.org/2000/svg",
-            view_box: "0 0 8 8",
-            width: "100%",
-            height: "100%",
-            fill: "none",
-            stroke: "currentColor",
-            stroke_width: "1",
-            stroke_linecap: "round",
-            stroke_linejoin: "round",
-            ..attributes,
-            polygon { points: "7.33 1 0.67 1 3.33 4.15 3.33 6.33 4.67 7 4.67 4.15 7.33 1" }
         }
     }
 }

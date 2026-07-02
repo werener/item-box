@@ -52,14 +52,14 @@ pub fn Header(folders: Vec<Folder>) -> Element {
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                                                const container = document.getElementById('folders-scroll');
-                                                                if (container) {{
-                                                                    container.scrollBy({{
-                                                                        left: {delta_y},
-                                                                        behavior: 'smooth'
-                                                                    }});
-                                                                }}
-                                                                "#,
+                                    const container = document.getElementById('folders-scroll');
+                                    if (container) {{
+                                        container.scrollBy({{
+                                            left: {delta_y},
+                                            behavior: 'smooth'
+                                        }});
+                                    }}
+                                    "#,
                             ),
                         )
                         .await;
@@ -72,7 +72,7 @@ pub fn Header(folders: Vec<Folder>) -> Element {
                         button {
                             key: "{folder_id}",
                             id: "folder-{folder_id}",
-                            class: "px-3 py-1 rounded-lg text-sm shrink-0 font-semibold",
+                            class: "px-3 py-1 rounded-lg text-sm shrink-0 font-semibold transition-colors",
                             class: if selected_folder() == Some(folder_id) { "hover:bg-accent-hover bg-accent text-primary" } else { "hover:bg-accent bg-surface-accented-muted text-primary-muted" },
                             onclick: move |_| {
                                 selected_folder
