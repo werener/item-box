@@ -7,6 +7,7 @@ use crate::ui::components::{
     icons::{PencilIcon, TrashIcon},
     items::popups::*,
 };
+use crate::ui::state::{AppState, PopupType};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[fully_pub::fully_pub]
@@ -24,9 +25,7 @@ const BUTTON_CLASS: &str = "w-5 h-5 text-primary-muted
 
 #[component]
 pub fn ControlPanel(item: Item, inventory: Signal<Inventory>) -> Element {
-    let mut show_delete_confirmation = use_signal(|| false);
-    let mut show_folder_menu = use_signal(|| false);
-    let mut show_tag_menu = use_signal(|| false);
+    let mut app_state: AppState = use_context();
 
     let item_id = item.id;
     let item_name = item.name.clone();
@@ -62,19 +61,16 @@ pub fn ControlPanel(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS} w-auto gap-1 px-1",
                     title: "Move to folder",
-                    onclick: move |_| {
-                        show_folder_menu.set(!show_folder_menu());
-                        show_tag_menu.set(false);
-                    },
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Folder),
                     "🖿"
                     span { class: "text-xs truncate max-w-[10ch]", "{folder_name}" }
                 }
-
-                FolderPopup {
-                    show_folder_menu,
-                    folder,
-                    folders: inventory.read().folders.clone(),
-                    callback: events.on_change_folder,
+                if app_state.is_popup_open(item_id, PopupType::Folder) {
+                    FolderPopup {
+                        folder,
+                        folders: inventory.read().folders.clone(),
+                        callback: events.on_change_folder,
+                    }
                 }
             }
 
@@ -82,29 +78,24 @@ pub fn ControlPanel(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Add tag",
-                    onclick: move |_| {
-                        show_tag_menu.set(!show_tag_menu());
-                        show_folder_menu.set(false);
-                    },
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Tag),
                     "#"
                 }
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Edit item",
-                    onclick: move |_| events.on_edit.call(()),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Edit),
                     PencilIcon {}
                 }
 
                 button {
                     class: "{BUTTON_CLASS} hover:text-red-500",
                     title: "Delete item",
-                    onclick: move |_| show_delete_confirmation.set(true),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Delete),
                     TrashIcon {}
                 }
-                DeleteConfirmation {
-                    show_delete_confirmation,
-                    item_name,
-                    callback: events.on_delete,
+                if app_state.is_popup_open(item_id, PopupType::Delete) {
+                    DeletePopup { item_name, callback: events.on_delete }
                 }
             }
         
