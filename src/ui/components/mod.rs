@@ -2,6 +2,9 @@
 mod control_panel;
 mod header;
 mod icons;
-mod item_card;
-mod item_grid;
-pub mod prelude;
+mod items;
+
+pub mod prelude {
+    pub use super::items::prelude::*;
+    pub use super::{control_panel::ControlPanel, header::Header};
+}
