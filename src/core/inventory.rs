@@ -74,9 +74,22 @@ impl Inventory {
         self.tags.iter().find(|t| t.id == id)
     }
 
+    fn get_item_mut(&mut self, id: Uuid) -> Option<&mut Item> {
+        self.items.iter_mut().find(|t| t.id == id)
+    }
+
+    fn get_folder_mut(&mut self, id: Uuid) -> Option<&mut Folder> {
+        self.folders.iter_mut().find(|f| f.id == id)
+    }
+
+    fn get_tag_mut(&mut self, id: Uuid) -> Option<&mut Tag> {
+        self.tags.iter_mut().find(|t| t.id == id)
+    }
+
     // Update
+    // Items
     fn rename_item<S: Into<String>>(&mut self, item_id: Uuid, new_name: S) -> bool {
-        if let Some(item) = self.items.iter_mut().find(|t| t.id == item_id) {
+        if let Some(item) = self.get_item_mut(item_id) {
             item.name = new_name.into();
             true
         } else {
@@ -84,8 +97,38 @@ impl Inventory {
         }
     }
 
+    fn change_item_folder(&mut self, item_id: Uuid, new_folder_id: Option<Uuid>) -> bool {
+        if let Some(item) = self.get_item_mut(item_id) {
+            item.folder = new_folder_id;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn add_tag_to_item(&mut self, item_id: Uuid, tag_id: Uuid) -> bool {
+        if let Some(item) = self.get_item_mut(item_id) {
+            if !item.tags.contains(&tag_id) {
+                item.tags.push(tag_id);
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    fn remove_tag_from_item(&mut self, item_id: Uuid, tag_id: Uuid) -> bool {
+        if let Some(item) = self.get_item_mut(item_id) {
+            item.tags.retain(|id| *id != tag_id);
+            true
+        } else {
+            false
+        }
+    }
+
+    // Folders
     fn rename_folder<S: Into<String>>(&mut self, folder_id: Uuid, new_name: S) -> bool {
-        if let Some(folder) = self.folders.iter_mut().find(|f| f.id == folder_id) {
+        if let Some(folder) = self.get_folder_mut(folder_id) {
             folder.name = new_name.into();
             true
         } else {
@@ -93,8 +136,9 @@ impl Inventory {
         }
     }
 
+    // Tags
     fn rename_tag<S: Into<String>>(&mut self, tag_id: Uuid, new_name: S) -> bool {
-        if let Some(tag) = self.tags.iter_mut().find(|t| t.id == tag_id) {
+        if let Some(tag) = self.get_tag_mut(tag_id) {
             tag.name = new_name.into();
             true
         } else {
@@ -103,7 +147,7 @@ impl Inventory {
     }
 
     fn recolor_tag(&mut self, tag_id: Uuid, new_color: Color) -> bool {
-        if let Some(tag) = self.tags.iter_mut().find(|t| t.id == tag_id) {
+        if let Some(tag) = self.get_tag_mut(tag_id) {
             tag.color = new_color;
             true
         } else {
