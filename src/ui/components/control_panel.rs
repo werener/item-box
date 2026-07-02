@@ -6,8 +6,9 @@ use dioxus::prelude::*;
 use std::sync::Arc;
 
 const BUTTON_CLASS: &str = "h-7 w-7 font-semibold text-primary-muted
+            transition-colors select-none
             rounded-md flex justify-center items-center gap-1
-            hover:bg-accent hover:text-primary-hover transition-colors";
+            hover:bg-accent hover:text-primary-hover";
 
 #[component]
 pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
@@ -18,7 +19,7 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "flex items-center gap-2 p-1",
             // Left-aligned
-            div { class: "flex items-center gap-2 flex-1 min-w-0 h-4 w-4",
+            div { class: "flex items-center gap-2 flex-1 min-w-4 h-4 w-4",
                 button {
                     class: "{BUTTON_CLASS} lg:w-20",
                     title: "Filter",

@@ -1,22 +1,32 @@
 // src/ui/components/item_card.rs
-use crate::{core::models::{Folder, Item, Tag},};
- use super::icons::{PencilIcon, TrashIcon};
+use super::icons::{PencilIcon, TrashIcon};
+use crate::core::models::{Folder, Item, Tag};
 use dioxus::prelude::*;
+use uuid::Uuid;
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+#[fully_pub::fully_pub]
+struct ItemCardEvents {
+    on_edit: Callback,
+    on_delete: Callback,
+    on_change_folder: Callback<Option<Uuid>>,
+    on_add_tag: Callback<Uuid>,
+    on_remove_tag: Callback<Uuid>,
+}
 
 #[component]
 pub fn ItemCard(
     item: Item,
     tags: Vec<Tag>,
     folder: Option<Folder>,
-    on_edit: EventHandler<()>,
-    on_delete: EventHandler<()>,
+    events: ItemCardEvents,
 ) -> Element {
     let images = vec![
         asset!("/assets/images/tool-placeholder-2.png").to_string(),
         asset!("/assets/images/tool-placeholder.png").to_string(),
         asset!("/assets/images/tool-placeholder.png").to_string(),
     ];
-    let mut show_confirm = use_signal(|| false);
+    let mut show_confirm_delete = use_signal(|| false);
     let confirmation_item = item.clone();
     rsx! {
         div { class: "w-full aspect-[9/15] bg-surface-muted
@@ -31,23 +41,23 @@ pub fn ItemCard(
                 ItemData { item }
                 Tags { tags }
             }
-            div { class: "h-[8%] flex items-center justify-end gap-2 px-2 
+            div { class: "h-[8%] flex items-center justify-end gap-2 px-1 pb-1
             bg-surface",
                 button {
                     class: "w-5 h-5 text-primary-muted hover:text-accent-hover transition-colors",
                     title: "Edit item",
-                    onclick: move |_| on_edit.call(()),
+                    onclick: move |_| events.on_edit.call(()),
                     PencilIcon {}
                 }
                 button {
                     class: "w-5 h-5 text-primary-muted hover:text-red-500 transition-colors",
                     title: "Delete item",
-                    onclick: move |_| show_confirm.set(true),
+                    onclick: move |_| show_confirm_delete.set(true),
                     TrashIcon {}
                 }
             }
         }
-        if show_confirm() {
+        if show_confirm_delete() {
             div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
                 div {
                     class: "flex flex-col bg-surface rounded-lg shadow-xl text-sm",
@@ -63,15 +73,15 @@ pub fn ItemCard(
                         button {
                             class: "px-2 py-1 text-sm text-primary-muted  bg-surface-accented rounded-md transition-colors",
                             class: "hover:text-primary",
-                            onclick: move |_| show_confirm.set(false),
+                            onclick: move |_| show_confirm_delete.set(false),
                             "Cancel"
                         }
                         button {
-                            class: "px-2 py-1 bg-error-primary text-error-secondary  rounded-md transition-colors",
+                            class: "px-2 py-1 bg-error-primary text-error-secondary rounded-md transition-colors",
                             class: "hover:bg-error-hover hover:text-error-hover",
                             onclick: move |_| {
-                                on_delete.call(());
-                                show_confirm.set(false);
+                                events.on_delete.call(());
+                                show_confirm_delete.set(false);
                             },
                             "Delete"
                         }
