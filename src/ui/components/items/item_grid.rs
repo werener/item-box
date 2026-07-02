@@ -23,7 +23,7 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
     });
 
     rsx! {
-        div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center select-none",
+        div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center ",
             for item in filtered_items.read().iter() {
                 {
                     rsx! {

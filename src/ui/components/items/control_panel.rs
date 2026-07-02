@@ -19,8 +19,8 @@ struct ItemCardEvents {
     on_remove_tag: Callback<Uuid>,
 }
 
-const BUTTON_CLASS: &str = "w-5 h-5 text-primary-muted 
-                    hover:text-accent-hover transition-colors 
+const BUTTON_CLASS: &str = "w-5 h-5 text-primary-muted font-semibold
+                    hover:text-accent-hover transition-colors
                     flex items-center justify-center";
 
 #[component]
@@ -56,14 +56,16 @@ pub fn ControlPanel(item: Item, inventory: Signal<Inventory>) -> Element {
     };
 
     rsx! {
-        div { class: "flex items-center justify-between gap-2 px-1 mt-1 bg-surface-muted border-t-2 border-secondary-muted",
+        div {
+            class: "flex items-center justify-between px-1 mt-1.5 select-none",
+            class: "border-t-2 border-secondary-muted",
             div { class: "relative shrink-0",
                 button {
                     class: "{BUTTON_CLASS} w-auto gap-1 px-1",
                     title: "Move to folder",
                     onclick: move |_| app_state.toggle_popup(item_id, PopupType::Folder),
                     "🖿"
-                    span { class: "text-xs truncate max-w-[10ch]", "{folder_name}" }
+                    span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
                 }
                 if app_state.is_popup_open(item_id, PopupType::Folder) {
                     FolderPopup {
@@ -74,7 +76,7 @@ pub fn ControlPanel(item: Item, inventory: Signal<Inventory>) -> Element {
                 }
             }
 
-            div { class: "flex items-center gap-2",
+            div { class: "flex items-center gap-1",
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Add tag",

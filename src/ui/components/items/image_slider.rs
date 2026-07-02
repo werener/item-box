@@ -64,7 +64,7 @@ pub fn ImageSlider(images: Vec<String>) -> Element {
     let mut state = ImageSliderState::new(images.clone());
 
     rsx! {
-        div { class: "w-full h-full flex flex-col",
+        div { class: "w-full h-full flex flex-col select-none",
 
             // Image with a swiping feature
             div {

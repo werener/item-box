@@ -48,7 +48,7 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
 #[component]
 fn Tags(tags: Vec<Tag>) -> Element {
     rsx! {
-        div { class: "flex px-0.5 gap-0.5 mt-auto items-center",
+        div { class: "flex px-0.5 gap-0.5 mt-auto items-center select-none",
             for tag in tags.iter().take(3) {
                 span {
                     class: "text-[12px] px-1 py-0.25",
