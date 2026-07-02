@@ -1,3 +1,4 @@
+// src/core/storage.rs
 use super::inventory::Inventory;
 use crate::error::StorageError;
 use std::{path::PathBuf, sync::Arc};

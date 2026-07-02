@@ -1,3 +1,4 @@
+// src/ui/components/item_card.rs
 use crate::core::models::{Folder, Item, Tag};
 use dioxus::prelude::*;
 
@@ -91,11 +92,11 @@ impl ImageSliderState {
             touch_start_x,
         }
     }
-    
+
     fn next(&mut self, total_images: usize) {
         (self.current_index).set(((self.current_index)() + 1) % total_images);
     }
-    
+
     fn prev(&mut self, total_images: usize) {
         let new_index = if (self.current_index)() == 0 {
             total_images - 1

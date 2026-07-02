@@ -1,3 +1,4 @@
+// src/ui/state.rs
 use dioxus::prelude::*;
 
 #[derive(Clone, Debug, Default)]

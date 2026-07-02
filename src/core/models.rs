@@ -1,3 +1,4 @@
+// src/core/models.rs
 use fully_pub::fully_pub;
 use serde::{Deserialize, Serialize};
 use std::fmt;

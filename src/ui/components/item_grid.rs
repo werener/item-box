@@ -1,7 +1,8 @@
+// src/ui/components/item_grid.rs
+use super::item_card::ItemCard;
 use crate::core::inventory::Inventory;
 use crate::core::models::{Folder, Tag};
 use crate::ui::state::AppState;
-use super::item_card::ItemCard;
 use dioxus::prelude::*;
 
 #[component]
@@ -10,7 +11,7 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
 
     let filtered_items = use_memo(move || {
         let inv = inventory.read();
-        
+
         match (app_state.selected_folder)() {
             Some(folder_id) => inv
                 .items
@@ -21,7 +22,7 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
             None => inv.items.clone(),
         }
     });
-    
+
     rsx! {
         div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center",
             for item in filtered_items.read().iter() {

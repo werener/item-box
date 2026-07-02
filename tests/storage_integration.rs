@@ -1,9 +1,12 @@
+// tests/storage_integration.r
 use std::path::PathBuf;
 use uuid::Uuid;
-use v_tool_box::core::builder::ItemBuilder;
-use v_tool_box::core::inventory::Inventory;
-use v_tool_box::core::models::*;
-use v_tool_box::core::storage::{JsonFileStorage, Storage};
+use v_tool_box::core::{
+    builder::ItemBuilder,
+    inventory::Inventory,
+    models::*,
+    storage::{JsonFileStorage, Storage},
+};
 
 fn temp_path() -> PathBuf {
     std::env::temp_dir().join(format!("vtoolbox_test_{}.json", Uuid::new_v4()))

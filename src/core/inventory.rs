@@ -1,3 +1,4 @@
+// src/core/inventory.rs
 use crate::core::builder::ItemBuilder;
 
 use super::models::*;

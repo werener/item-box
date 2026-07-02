@@ -1,4 +1,4 @@
-// ui/control_panel.rs
+// src/ui/components/control_panel.rs
 use crate::core::inventory::Inventory;
 use crate::core::storage::Storage;
 use dioxus::prelude::*;

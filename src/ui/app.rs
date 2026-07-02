@@ -1,4 +1,4 @@
-// app.rs
+// src/ui/app.rs
 use super::components::prelude::*;
 use super::state::AppState;
 use crate::core::storage::create_storage;

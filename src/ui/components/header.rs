@@ -1,3 +1,4 @@
+// src/ui/components/header.rs
 use crate::{core::models::Folder, ui::state::AppState};
 use dioxus::{document::eval, prelude::*};
 
@@ -51,14 +52,14 @@ pub fn Header(folders: Vec<Folder>) -> Element {
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                                const container = document.getElementById('folders-scroll');
-                                                if (container) {{
-                                                    container.scrollBy({{
-                                                        left: {delta_y},
-                                                        behavior: 'smooth'
-                                                    }});
-                                                }}
-                                                "#,
+                                                                const container = document.getElementById('folders-scroll');
+                                                                if (container) {{
+                                                                    container.scrollBy({{
+                                                                        left: {delta_y},
+                                                                        behavior: 'smooth'
+                                                                    }});
+                                                                }}
+                                                                "#,
                             ),
                         )
                         .await;
