@@ -49,35 +49,39 @@ pub fn DeleteConfirmation(
 #[component]
 pub fn FolderPopup(
     show_folder_menu: Signal<bool>,
-    current_folder: Option<Uuid>,
+    folder: Option<Uuid>,
     folders: Vec<Folder>,
     callback: Callback<Option<Uuid>>,
 ) -> Element {
+    const BUTTON_CLASS: &str =
+        "px-2 py-1 text-xs min-h-4 text-left text-primary hover:bg-accent rounded truncate";
     rsx! {
         if show_folder_menu() {
             div {
-                class: "absolute bottom-8 right-2 z-30 bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 max-h-40 overflow-y-auto min-w-[120px]",
+                class: "absolute bottom-full mb-1 z-30 
+                bg-surface rounded-md shadow-lg border border-secondary-muted 
+                p-1 flex flex-col gap-1 max-h-40 overflow-y-auto min-w-[120px]",
                 onclick: move |e| e.stop_propagation(),
 
                 button {
-                    class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
-                    class: if current_folder.is_none() { "bg-accent-hover font-semibold" } else { "" },
+                    class: "{BUTTON_CLASS}",
+                    class: if folder.is_none() { "hover:bg-accent-hover bg-accent font-semibold text-primary" } else { "hover:bg-accent text-primary-muted" },
                     onclick: move |_| {
                         callback.call(None);
                         show_folder_menu.set(false);
                     },
-                    "None"
+                    "No folder"
                 }
 
-                for folder in folders {
+                for fd in folders {
                     {
-                        let folder_id = folder.id;
-                        let folder_name = folder.name;
+                        let folder_id = fd.id;
+                        let folder_name = fd.name;
 
                         rsx! {
                             button {
-                                class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
-                                class: if current_folder == Some(folder_id) { "bg-accent-hover font-semibold" } else { "" },
+                                class: "{BUTTON_CLASS}",
+                                class: if folder == Some(folder_id) { "hover:bg-accent-hover bg-accent font-semibold text-primary" } else { "hover:bg-accent text-primary-muted" },
                                 onclick: move |_| {
                                     callback.call(Some(folder_id));
                                     show_folder_menu.set(false);

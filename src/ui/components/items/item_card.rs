@@ -25,20 +25,20 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
 
     
     rsx! {
-        div { class: "w-full aspect-[9/15] bg-surface-muted
+        div { class: "relative w-full aspect-[9/16] bg-surface-muted
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
-            flex flex-col overflow-hidden",
+            flex flex-col",
 
             div { class: "h-[60%]",
                 ImageSlider { images }
             }
 
-            div { class: "h-[32%] flex flex-col",
+            div { class: "h-[30%] flex flex-col",
                 ItemData { item: item.clone() }
                 Tags { tags }
             }
 
-            div { class: "h-[8%]",
+            div { class: "h-[10%]",
                 ControlPanel { item: item.clone(), inventory }
             }
         }
@@ -48,7 +48,7 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
 #[component]
 fn Tags(tags: Vec<Tag>) -> Element {
     rsx! {
-        div { class: "flex px-0.5 pb-0.5 gap-0.5 mt-auto items-center",
+        div { class: "flex px-0.5 gap-0.5 mt-auto items-center",
             for tag in tags.iter().take(3) {
                 span {
                     class: "text-[12px] px-1 py-0.25",
@@ -72,7 +72,7 @@ fn Tags(tags: Vec<Tag>) -> Element {
 #[component]
 fn ItemData(item: Item) -> Element {
     rsx! {
-        div { class: "px-2",
+        div { class: "px-2 mb-1",
             h3 { class: "text-base font-semibold text-primary truncate", "{item.name}" }
 
             div { class: "flex items-center gap-2",
