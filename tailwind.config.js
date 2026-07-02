@@ -28,6 +28,18 @@ module.exports = {
                         muted: '#fde3b9'
                     },
                 },
+                error: {
+                    primary: {
+                        DEFAULT: '#be3436',
+                        hover: '#ff0400',
+                        muted: '#ffa39e',
+                    },
+                    secondary: {
+                        DEFAULT: '#ffffff',
+                        hover: '#f8ffdf',
+                        muted: '#272425',
+                    }
+                },
             },
         },
     },
