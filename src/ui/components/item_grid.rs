@@ -27,6 +27,9 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
         div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center",
             for item in filtered_items.read().iter() {
                 {
+                    let item = item.clone();
+                    let item_id = item.id;
+
                     let tags: Vec<Tag> = item
                         .tags
                         .iter()
@@ -36,8 +39,20 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
                     let folder: Option<Folder> = item
                         .folder
                         .and_then(|id| (inventory()).get_folder(id).cloned());
+
+                    let on_delete = move |_| {
+                        inventory.write().remove_item(item_id);
+                    };
+                    let on_edit = move |_| {}; // TODO: add edit popup
+
                     rsx! {
-                        ItemCard { item: item.clone(), tags, folder }
+                        ItemCard {
+                            item,
+                            tags,
+                            folder,
+                            on_edit,
+                            on_delete,
+                        }
                     }
                 }
             }
