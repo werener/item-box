@@ -26,10 +26,8 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
         div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center select-none",
             for item in filtered_items.read().iter() {
                 {
-                    let item_s = use_signal(|| item.clone());
-
                     rsx! {
-                        ItemCard { item: item_s, inventory }
+                        ItemCard { item: item.clone(), inventory }
                     }
                 }
             }

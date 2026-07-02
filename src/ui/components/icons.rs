@@ -1,3 +1,4 @@
+// src/ui/components/icons.rs
 use dioxus::prelude::*;
 
 /// Custom icon of a filter/funnel (8x8).

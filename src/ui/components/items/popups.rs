@@ -1,7 +1,15 @@
+// src/ui/components/items/popups.rs
 use dioxus::prelude::*;
+use uuid::Uuid;
+
+use crate::core::models::Folder;
 
 #[component]
-pub fn DeleteConfirmation(show_delete_confirmation: Signal<bool>, item_name: String, callback: Callback) -> Element {
+pub fn DeleteConfirmation(
+    show_delete_confirmation: Signal<bool>,
+    item_name: String,
+    callback: Callback,
+) -> Element {
     rsx! {
         if show_delete_confirmation() {
             div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
@@ -30,6 +38,52 @@ pub fn DeleteConfirmation(show_delete_confirmation: Signal<bool>, item_name: Str
                                 show_delete_confirmation.set(false);
                             },
                             "Delete"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+pub fn FolderPopup(
+    show_folder_menu: Signal<bool>,
+    current_folder: Option<Uuid>,
+    folders: Vec<Folder>,
+    callback: Callback<Option<Uuid>>,
+) -> Element {
+    rsx! {
+        if show_folder_menu() {
+            div {
+                class: "absolute bottom-8 right-2 z-30 bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 max-h-40 overflow-y-auto min-w-[120px]",
+                onclick: move |e| e.stop_propagation(),
+
+                button {
+                    class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
+                    class: if current_folder.is_none() { "bg-accent-hover font-semibold" } else { "" },
+                    onclick: move |_| {
+                        callback.call(None);
+                        show_folder_menu.set(false);
+                    },
+                    "None"
+                }
+
+                for folder in folders {
+                    {
+                        let folder_id = folder.id;
+                        let folder_name = folder.name;
+
+                        rsx! {
+                            button {
+                                class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
+                                class: if current_folder == Some(folder_id) { "bg-accent-hover font-semibold" } else { "" },
+                                onclick: move |_| {
+                                    callback.call(Some(folder_id));
+                                    show_folder_menu.set(false);
+                                },
+                                "{folder_name}"
+                            }
                         }
                     }
                 }

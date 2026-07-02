@@ -19,9 +19,9 @@ pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "flex items-center gap-2 p-1",
             // Left-aligned
-            div { class: "flex items-center gap-2 flex-1 min-w-4 h-4 w-4",
+            div { class: "flex items-center gap-2 flex-1 min-w-4",
                 button {
-                    class: "{BUTTON_CLASS} lg:w-20",
+                    class: "{BUTTON_CLASS} min-w-7 lg:w-20",
                     title: "Filter",
                     onclick: move |_| {},
                     FunnelIcon { class: "h-5 w-5" }

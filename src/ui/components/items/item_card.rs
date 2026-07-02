@@ -1,23 +1,19 @@
 // src/ui/components/items/item_card.rs
-
-use super::control_panel::{ControlPanel, ItemCardEvents};
+use super::control_panel::ControlPanel;
 use super::image_slider::ImageSlider;
 use crate::core::inventory::Inventory;
 use crate::core::models::{Folder, Item, Tag};
 use dioxus::prelude::*;
-use uuid::Uuid;
 
 #[component]
-pub fn ItemCard(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
+pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
     let tags: Vec<Tag> = item
-        .read()
         .tags
         .iter()
         .filter_map(|id| (inventory()).get_tag(*id).cloned())
         .collect();
 
     let folder: Option<Folder> = item
-        .read()
         .folder
         .and_then(|id| (inventory()).get_folder(id).cloned());
 
@@ -27,30 +23,7 @@ pub fn ItemCard(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
         asset!("/assets/images/tool-placeholder.png").to_string(),
     ];
 
-    let events = ItemCardEvents {
-        on_edit: Callback::new(move |_| {}),
-
-        on_delete: Callback::new(move |_| {
-            inventory.write().remove_item(item.read().id);
-        }),
-
-        on_change_folder: Callback::new(move |new_folder_id: Option<Uuid>| {
-            inventory
-                .write()
-                .change_item_folder(item.read().id, new_folder_id);
-        }),
-
-        on_add_tag: Callback::new(move |tag_id: Uuid| {
-            inventory.write().add_tag_to_item(item.read().id, tag_id);
-        }),
-
-        on_remove_tag: Callback::new(move |tag_id: Uuid| {
-            inventory
-                .write()
-                .remove_tag_from_item(item.read().id, tag_id);
-        }),
-    };
-
+    
     rsx! {
         div { class: "w-full aspect-[9/15] bg-surface-muted
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
@@ -61,12 +34,12 @@ pub fn ItemCard(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
             }
 
             div { class: "h-[32%] flex flex-col",
-                ItemData { item: item.read().clone() }
+                ItemData { item: item.clone() }
                 Tags { tags }
             }
 
             div { class: "h-[8%]",
-                ControlPanel { events, item }
+                ControlPanel { item: item.clone(), inventory }
             }
         }
     }
