@@ -1,7 +1,10 @@
 // src/ui/components/header.rs
 use crate::{
     core::inventory::Inventory,
-    ui::state::{AppState, PopupType},
+    ui::{
+        components::popups::{DeleteConfirmationPopup, FolderActionPopup},
+        state::{AppState, PopupType},
+    },
 };
 use dioxus::{document::eval, prelude::*};
 
@@ -55,7 +58,6 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
 
     let mut active_popup = app_state.active_popup;
     let folders = inventory.read().folders.clone();
-
     use_scroll_into_center(selected_folder, "folders-scroll", "folder-");
 
     rsx! {
@@ -101,26 +103,26 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                 }
             }
         }
-        if let Some((folder_id, PopupType::HeaderContextMenuFolder)) = (active_popup)() {
-            {
-                let (x, y) = (app_state.popup_position)();
-                let btnClass = "px-2 py-1 text-xs text-left rounded truncate";
-                rsx! {
-                    div {
-                        class: "fixed z-50 bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 min-w-[120px]",
-                        style: "top: {y}px; left: {x}px;",
 
-                        button { class: "{btnClass} text-primary hover:bg-accent", "Rename" }
-                        button {
-                            class: "{btnClass} text-error-primary",
-                            class: "hover:bg-error-primary-muted hover:text-error-primary-hover",
-                            onclick: move |_| {
-                                inventory.write().remove_folder(folder_id);
-                                app_state.close_popup();
-                            },
-                            "Delete"
-                        }
-                    }
+        if let Some(folder_id) = app_state
+            .is_popup_type_open(PopupType::HeaderContextMenuFolder)
+        {
+            FolderActionPopup {
+                edit_callback: Callback::new(move |_: ()| {
+                    app_state.open_popup(folder_id, PopupType::FolderEdit);
+                }),
+                delete_callback: Callback::new(move |_: ()| {
+                    app_state.open_popup(folder_id, PopupType::FolderDelete);
+                }),
+            }
+        }
+        if let Some(id) = app_state.is_popup_type_open(PopupType::FolderDelete) {
+            if let Some(folder) = inventory.read().get_folder(id) {
+                DeleteConfirmationPopup {
+                    delete_target_name: folder.name.clone(),
+                    callback: Callback::new(move |_: ()| {
+                        inventory.write().remove_folder(id);
+                    }),
                 }
             }
         }

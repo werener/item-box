@@ -9,6 +9,8 @@ pub enum PopupType {
     ItemDelete,
     ItemEdit,
     HeaderContextMenuFolder,
+    FolderDelete,
+    FolderEdit,
 }
 
 #[derive(Clone, Debug, Copy, Default)]
@@ -27,12 +29,12 @@ impl AppState {
         }
     }
 
-    /// Opens a popup for a specific item, closing any other open popup
+    /// Opens a popup, closing any other open popup
     fn open_popup(&mut self, id: Uuid, popup_type: PopupType) {
         self.active_popup.set(Some((id, popup_type)));
     }
 
-    /// Closes any open popup
+    /// Closes currently open popup
     fn close_popup(&mut self) {
         self.active_popup.set(None);
     }
@@ -46,8 +48,18 @@ impl AppState {
         }
     }
 
-    /// Checks if a specific popup is currently open for a specific item
+    /// Checks if a specific popup is currently open with a specific ID attached
     fn is_popup_open(&self, id: Uuid, popup_type: PopupType) -> bool {
         (self.active_popup)() == Some((id, popup_type))
+    }
+
+    /// Checks if a specific popup type is currently open
+    fn is_popup_type_open(&self, popup_type: PopupType) -> Option<Uuid> {
+        if let Some((id, active_type)) = (self.active_popup)() {
+            if active_type == popup_type {
+                return Some(id);
+            }
+        } 
+        None
     }
 }

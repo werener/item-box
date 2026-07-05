@@ -96,16 +96,13 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                     onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemDelete),
                     TrashIcon {}
                 }
-                if app_state.is_popup_open(item_id, PopupType::ItemDelete) {
-                    DeleteConfirmationPopup {
-                        delete_target_name: item_name,
-                        callback: events.on_delete,
-                    }
-                }
+            
             }
         
         }
-
+        if app_state.is_popup_open(item_id, PopupType::ItemDelete) {
+            DeleteConfirmationPopup { delete_target_name: item_name, callback: events.on_delete }
+        }
         // // tag menu
         // if show_tag_menu() {
         //     div { class: "absolute bottom-10 right-2 z-30 bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 max-h-40 overflow-y-auto min-w-[120px]",
