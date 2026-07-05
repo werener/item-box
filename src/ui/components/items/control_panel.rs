@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::core::{inventory::Inventory, models::Item};
 use crate::ui::components::{
     icons::{PencilIcon, TrashIcon},
-    items::popups::*,
+    popups::*,
 };
 use crate::ui::state::{AppState, PopupType};
 
@@ -68,7 +68,7 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                     span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
                 }
                 if app_state.is_popup_open(item_id, PopupType::ItemChangeFolder) {
-                    FolderPopup {
+                    FolderListPopup {
                         folder,
                         folders: inventory.read().folders.clone(),
                         callback: events.on_change_folder,
@@ -97,7 +97,10 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                     TrashIcon {}
                 }
                 if app_state.is_popup_open(item_id, PopupType::ItemDelete) {
-                    DeletePopup { item_name, callback: events.on_delete }
+                    DeleteConfirmationPopup {
+                        delete_target_name: item_name,
+                        callback: events.on_delete,
+                    }
                 }
             }
         

@@ -5,9 +5,9 @@ use uuid::Uuid;
 use crate::{core::models::Folder, ui::state::AppState};
 
 #[component]
-pub fn DeletePopup(item_name: String, callback: Callback) -> Element {
+pub fn DeleteConfirmationPopup(delete_target_name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
-    let btnClass = "px-2 py-1 text-sm rounded-md transition-colors";
+    const BUTTON_CLASS: &str = "px-2 py-1 text-sm rounded-md transition-colors";
     rsx! {
         div {
             class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
@@ -19,18 +19,18 @@ pub fn DeletePopup(item_name: String, callback: Callback) -> Element {
 
                 p { class: "text-secondary line-clamp-2",
                     "Delete "
-                    span { class: "font-semibold text-primary", "{item_name}" }
+                    span { class: "font-semibold text-primary", "{delete_target_name}" }
                 }
 
                 div { class: "flex justify-end mt-2 gap-2",
                     button {
-                        class: "{btnClass} text-primary-muted bg-surface-accented",
+                        class: "{BUTTON_CLASS} text-primary-muted bg-surface-accented",
                         class: "hover:text-primary",
                         onclick: move |_| app_state.close_popup(),
                         "Cancel"
                     }
                     button {
-                        class: "{btnClass} bg-error-primary text-error-secondary",
+                        class: "{BUTTON_CLASS} bg-error-primary text-error-secondary",
                         class: "hover:bg-error-primary-hover",
                         onclick: move |_| {
                             callback.call(());
@@ -45,7 +45,7 @@ pub fn DeletePopup(item_name: String, callback: Callback) -> Element {
 }
 
 #[component]
-pub fn FolderPopup(
+pub fn FolderListPopup(
     folder: Option<Uuid>,
     folders: Vec<Folder>,
     callback: Callback<Option<Uuid>>,

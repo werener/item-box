@@ -3,7 +3,6 @@ mod control_panel;
 mod image_slider;
 mod item_card;
 mod item_grid;
-mod popups;
 
 pub mod prelude {
     pub use super::item_grid::ItemGrid;

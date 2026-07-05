@@ -3,6 +3,7 @@ mod control_panel;
 mod header;
 mod icons;
 mod items;
+mod popups;
 
 pub mod prelude {
     pub use super::items::prelude::*;
