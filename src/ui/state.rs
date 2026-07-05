@@ -51,8 +51,3 @@ impl AppState {
         (self.active_popup)() == Some((id, popup_type))
     }
 }
-
-pub mod constants {
-    pub const POPUP_Z_LEVEL: u8 = 50;
-
-}

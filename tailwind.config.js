@@ -32,7 +32,7 @@ module.exports = {
                     primary: {
                         DEFAULT: '#be3436',
                         hover: '#ff0400',
-                        muted: '#ffa39e',
+                        muted: '#ffd6d6',
                     },
                     secondary: {
                         DEFAULT: '#ffffff',

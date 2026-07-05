@@ -1,7 +1,6 @@
 // src/ui/app.rs
 use super::components::prelude::*;
 use super::state::AppState;
-use super::state::constants::POPUP_Z_LEVEL;
 use crate::core::storage::create_storage;
 use dioxus::prelude::*;
 
@@ -26,7 +25,7 @@ pub fn App() -> Element {
         }
         if active_popup().is_some() {
             div {
-                class: "fixed inset-0 z-{POPUP_Z_LEVEL-20}",
+                class: "fixed inset-0 z-30",
                 onclick: move |_| active_popup.set(None),
                 oncontextmenu: move |_| active_popup.set(None),
             }

@@ -2,18 +2,17 @@
 use dioxus::prelude::*;
 use uuid::Uuid;
 
-use crate::{core::models::Folder, ui::state::{AppState, constants::POPUP_Z_LEVEL}};
+use crate::{core::models::Folder, ui::state::AppState};
 
 #[component]
-pub fn DeletePopup(
-    item_name: String,
-    callback: Callback,
-) -> Element {
+pub fn DeletePopup(item_name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
 
     rsx! {
 
-        div { class: "fixed inset-0 z-{POPUP_Z_LEVEL} flex items-center justify-center bg-black/50 backdrop-blur-sm",
+        div {
+            class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+            onclick: move |_| app_state.close_popup(),
             div {
                 class: "flex flex-col bg-surface rounded-lg shadow-xl text-sm",
                 class: "w-[60%] max-w-sm w-full p-4 mx-4 gap-2",
@@ -59,7 +58,7 @@ pub fn FolderPopup(
     rsx! {
 
         div {
-            class: "absolute bottom-full mb-1 z-{POPUP_Z_LEVEL}
+            class: "absolute bottom-full mb-1 z-50
                 bg-surface rounded-md shadow-lg border border-secondary-muted 
                 p-1 flex flex-col gap-1 max-h-40 overflow-y-auto min-w-[120px]",
             onclick: move |e| e.stop_propagation(),

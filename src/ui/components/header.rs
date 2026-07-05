@@ -4,7 +4,7 @@ use crate::{
         inventory::{self, Inventory},
         models::Folder,
     },
-    ui::state::{constants::POPUP_Z_LEVEL, AppState, PopupType},
+    ui::state::{AppState, PopupType},
 };
 use dioxus::{document::eval, prelude::*};
 
@@ -62,14 +62,14 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                    const container = document.getElementById('folders-scroll'); 
-                                    if (container) {{ 
-                                        container.scrollBy({{
-                                            left: {delta_y},
-                                            behavior: 'smooth'
-                                        }});
-                                    }}
-                                    "#,
+                                                        const container = document.getElementById('folders-scroll'); 
+                                                        if (container) {{ 
+                                                            container.scrollBy({{
+                                                                left: {delta_y},
+                                                                behavior: 'smooth'
+                                                            }});
+                                                        }}
+                                                        "#,
                             ),
                         )
                         .await;
@@ -87,10 +87,9 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                             onclick: move |_| {
                                 selected_folder
                                     .set(
-                                        if selected_folder() == Some(folder_id) { None } else { Some(folder_id) }, // Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position // Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position
-                                    ); // Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position // Capture exact mouse position
+                                        if selected_folder() == Some(folder_id) { None } else { Some(folder_id) },
+                                    );
                             },
-                            // Capture exact mouse position
                             oncontextmenu: move |e| {
                                 e.prevent_default();
                                 let pos = e.client_coordinates();
@@ -107,16 +106,20 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
         if let Some((folder_id, PopupType::HeaderContextMenuFolder)) = (active_popup)() {
             {
                 let (x, y) = (app_state.popup_position)();
-
+                let btnClass = "px-2 py-1 text-xs text-left rounded truncate";
                 rsx! {
                     div {
-                        class: "fixed z-{POPUP_Z_LEVEL} bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 min-w-[120px]",
+                        class: "fixed z-50 bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 min-w-[120px]",
                         style: "top: {y}px; left: {x}px;",
 
-                        button { class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
-                            "Rename"
-                        }
-                        button { class: "px-2 py-1 text-xs text-left text-red-500 hover:bg-red-500/10 hover:text-red-600 rounded truncate",
+                        button { class: "{btnClass} text-primary hover:bg-accent", "Rename" }
+                        button {
+                            class: "{btnClass} text-error-primary",
+                            class: "hover:bg-error-primary-muted hover:text-error-primary-hover",
+                            onclick: move |_| {
+                                inventory.write().remove_folder(folder_id);
+                                app_state.close_popup();
+                            },
                             "Delete"
                         }
                     }
