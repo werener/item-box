@@ -6,7 +6,7 @@ use uuid::Uuid;
 pub enum PopupType {
     #[default]
     Null,
-    ItemChangeFolder,
+    ItemContextMenuFolders,
     ItemAddTag,
     ItemDelete,
     ItemEdit,
@@ -31,8 +31,12 @@ impl AppState {
         }
     }
 
+    fn get_popup_source(&self) -> Option<Uuid> {
+        (self.active_popup)().0
+    }
+
     fn get_popup_type(&self) -> PopupType {
-        PopupType::Null
+        (self.active_popup)().1
     }
 
     /// Opens a popup, closing any other open popup
