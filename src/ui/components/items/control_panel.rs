@@ -63,11 +63,11 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS} w-auto gap-1 px-1",
                     title: "Change folder",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemChangeFolder),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemContextMenuFolders),
                     "🖿"
                     span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
                 }
-                if app_state.is_popup_open(item_id, PopupType::ItemChangeFolder) {
+                if app_state.is_popup_open(item_id, PopupType::ItemContextMenuFolders) {
                     FolderListPopup {
                         folder,
                         folders: inventory.read().folders.clone(),
@@ -101,7 +101,7 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
         
         }
         if app_state.is_popup_open(item_id, PopupType::ItemDelete) {
-            DeleteConfirmationPopup { delete_target_name: item_name, callback: events.on_delete }
+            DeleteConfirmationPopup { name: item_name, callback: events.on_delete }
         }
         // // tag menu
         // if show_tag_menu() {

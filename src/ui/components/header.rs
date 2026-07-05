@@ -117,7 +117,7 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
         if let Some(id) = app_state.is_popup_type_open(PopupType::FolderDelete) {
             if let Some(folder) = inventory.read().get_folder(id) {
                 DeleteConfirmationPopup {
-                    delete_target_name: folder.name.clone(),
+                    name: folder.name.clone(),
                     callback: Callback::new(move |_: ()| {
                         inventory.write().remove_folder(id);
                     }),

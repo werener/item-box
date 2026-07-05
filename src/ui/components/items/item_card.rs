@@ -2,7 +2,7 @@
 use super::control_panel::ControlPanelItem;
 use super::image_slider::ImageSlider;
 use crate::core::inventory::Inventory;
-use crate::core::models::{Folder, Item, Tag};
+use crate::core::models::{Item, Tag};
 use dioxus::prelude::*;
 
 #[component]
@@ -12,10 +12,6 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
         .iter()
         .filter_map(|id| (inventory()).get_tag(*id).cloned())
         .collect();
-
-    let folder: Option<Folder> = item
-        .folder
-        .and_then(|id| (inventory()).get_folder(id).cloned());
 
     let images = vec![
         asset!("/assets/images/tool-placeholder-2.png").to_string(),
