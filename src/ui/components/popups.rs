@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::{core::models::Folder, ui::state::AppState};
 
 #[component]
-pub fn DeleteConfirmationPopup(delete_target_name: String, callback: Callback) -> Element {
+pub fn DeleteConfirmationPopup(name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
     const BUTTON_CLASS: &str = "px-2 py-1 text-sm rounded-md transition-colors";
     rsx! {
@@ -19,7 +19,7 @@ pub fn DeleteConfirmationPopup(delete_target_name: String, callback: Callback) -
 
                 p { class: "text-secondary line-clamp-2",
                     "Confirm the deletion of "
-                    span { class: "font-semibold text-primary", "{delete_target_name}" }
+                    span { class: "font-semibold text-primary", "{name}" }
                 }
 
                 div { class: "flex justify-end mt-2 gap-2",
