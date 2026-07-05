@@ -5,7 +5,7 @@ use super::icons::FunnelIcon;
 use dioxus::prelude::*;
 use std::sync::Arc;
 
-const BUTTON_CLASS: &str = "h-7 w-7 font-semibold text-primary-muted
+const BUTTON_CLASS: &str = "h-[3ch] w-[3ch] font-semibold text-primary-muted
             transition-colors select-none
             rounded-md flex justify-center items-center gap-1
             hover:bg-accent hover:text-primary-hover";
@@ -30,7 +30,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
 
                 // TODO: add styling to the search field
                 input {
-                    class: "px-2 py-1 text-sm text-primary bg-surface min-w-16",
+                    class: "px-2 py-1 text-sm text-primary bg-surface w-full max-w-[29ch] sm:max-w-[32ch] md:max-w-[50ch] lg:max-w-[70%]",
                     class: "rounded-md shrink border-2 border-secondary-muted",
                     class: "focus:border-accent focus:outline-none",
 
@@ -41,9 +41,9 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
             }
 
             // Right-aligned
-            div { class: "flex items-center gap-2 shrink-0",
+            div { class: "flex items-center gap-2 lg:gap-5 shrink-0",
                 button {
-                    class: "{BUTTON_CLASS} md:w-14",
+                    class: "{BUTTON_CLASS} md:w-[6ch]",
                     title: "New Tag",
                     onclick: move |_| {},
                     "#"
@@ -51,7 +51,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "{BUTTON_CLASS} md:w-20",
+                    class: "{BUTTON_CLASS} md:w-[9ch]",
                     title: "New folder",
                     onclick: move |_| {
                         inventory
@@ -63,7 +63,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "{BUTTON_CLASS} md:w-16",
+                    class: "{BUTTON_CLASS} md:w-[7ch]",
                     title: "New item",
                     onclick: move |_| {
                         inventory
@@ -75,8 +75,8 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "{BUTTON_CLASS} sm:w-24",
-                    title: "Reverse",
+                    class: "{BUTTON_CLASS} sm:w-[8ch]",
+                    title: "Undo changes",
                     onclick: {
                         let storage = storage.clone();
                         move |_| {
@@ -86,11 +86,11 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                         }
                     },
                     "↶"
-                    span { class: "hidden sm:inline", "Reverse" }
+                    span { class: "hidden sm:inline", "Undo" }
                 }
 
                 button {
-                    class: "{BUTTON_CLASS} sm:w-16",
+                    class: "{BUTTON_CLASS} sm:w-[7ch]",
                     title: "Sync",
                     onclick: move |_| {
                         let _ = storage.save(&inventory());
@@ -100,7 +100,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                 }
 
                 button {
-                    class: "{BUTTON_CLASS} sm:w-20",
+                    class: "{BUTTON_CLASS} sm:w-[9ch]",
                     title: "Other",
                     onclick: move |_| {},
                     "⋯"

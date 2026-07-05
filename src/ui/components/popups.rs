@@ -18,7 +18,7 @@ pub fn DeleteConfirmationPopup(delete_target_name: String, callback: Callback) -
                 onclick: move |e| e.stop_propagation(),
 
                 p { class: "text-secondary line-clamp-2",
-                    "Delete "
+                    "Confirm the deletion of "
                     span { class: "font-semibold text-primary", "{delete_target_name}" }
                 }
 
@@ -98,7 +98,7 @@ pub fn FolderListPopup(
 pub fn FolderActionPopup(edit_callback: Callback, delete_callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
     let (x, y) = (app_state.popup_position)();
-    
+
     const BUTTON_CLASS: &str = "px-2 py-1 text-xs text-left rounded truncate";
     rsx! {
         div {

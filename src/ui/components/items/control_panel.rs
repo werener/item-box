@@ -62,7 +62,7 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
             div { class: "relative shrink-0",
                 button {
                     class: "{BUTTON_CLASS} w-auto gap-1 px-1",
-                    title: "Move to folder",
+                    title: "Change folder",
                     onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemChangeFolder),
                     "🖿"
                     span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
@@ -79,20 +79,20 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
             div { class: "flex items-center gap-1",
                 button {
                     class: "{BUTTON_CLASS}",
-                    title: "Add tag",
+                    title: "Tags",
                     onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemAddTag),
                     "#"
                 }
                 button {
                     class: "{BUTTON_CLASS}",
-                    title: "Edit item",
+                    title: "Edit",
                     onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemEdit),
                     PencilIcon {}
                 }
 
                 button {
                     class: "{BUTTON_CLASS} hover:text-red-500",
-                    title: "Delete item",
+                    title: "Delete",
                     onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemDelete),
                     TrashIcon {}
                 }
