@@ -7,9 +7,8 @@ use crate::{core::models::Folder, ui::state::AppState};
 #[component]
 pub fn DeletePopup(item_name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
-
+    let btnClass = "px-2 py-1 text-sm rounded-md transition-colors";
     rsx! {
-
         div {
             class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
             onclick: move |_| app_state.close_popup(),
@@ -25,14 +24,14 @@ pub fn DeletePopup(item_name: String, callback: Callback) -> Element {
 
                 div { class: "flex justify-end mt-2 gap-2",
                     button {
-                        class: "px-2 py-1 text-sm text-primary-muted  bg-surface-accented rounded-md transition-colors",
+                        class: "{btnClass} text-primary-muted bg-surface-accented",
                         class: "hover:text-primary",
                         onclick: move |_| app_state.close_popup(),
                         "Cancel"
                     }
                     button {
-                        class: "px-2 py-1 bg-error-primary text-error-secondary rounded-md transition-colors",
-                        class: "hover:bg-error-hover hover:text-error-hover",
+                        class: "{btnClass} bg-error-primary text-error-secondary",
+                        class: "hover:bg-error-primary-hover",
                         onclick: move |_| {
                             callback.call(());
                             app_state.close_popup();

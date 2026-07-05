@@ -1,9 +1,6 @@
 // src/ui/components/header.rs
 use crate::{
-    core::{
-        inventory::{self, Inventory},
-        models::Folder,
-    },
+    core::inventory::Inventory,
     ui::state::{AppState, PopupType},
 };
 use dioxus::{document::eval, prelude::*};
@@ -37,6 +34,20 @@ pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
     });
 }
 
+fn script(delta_y: f64) -> String {
+    format!(
+        r#"
+            const container = document.getElementById('folders-scroll'); 
+            if (container) {{ 
+                container.scrollBy({{
+                    left: {delta_y},
+                    behavior: 'smooth'
+                }});
+            }}
+        "#,
+    )
+}
+
 #[component]
 pub fn Header(inventory: Signal<Inventory>) -> Element {
     let mut app_state: AppState = use_context();
@@ -58,23 +69,10 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
             onwheel: move |e: Event<WheelData>| {
                 spawn(async move {
                     let delta_y = e.data().delta().strip_units().y;
-
-                    let _ = document::eval(
-                            &format!(
-                                r#"
-                                                        const container = document.getElementById('folders-scroll'); 
-                                                        if (container) {{ 
-                                                            container.scrollBy({{
-                                                                left: {delta_y},
-                                                                behavior: 'smooth'
-                                                            }});
-                                                        }}
-                                                        "#,
-                            ),
-                        )
-                        .await;
+                    let _ = document::eval(&script(delta_y)).await;
                 });
             },
+
             for folder in folders.iter() {
                 {
                     let folder_id = folder.id;
