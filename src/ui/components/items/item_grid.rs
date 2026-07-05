@@ -23,12 +23,16 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
     });
 
     rsx! {
-        div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center ",
-            for item in filtered_items.read().iter() {
-                {
-                    rsx! {
-                        ItemCard { item: item.clone(), inventory }
-                    }
+        if filtered_items.read().is_empty() {
+            div { class: "flex flex-col items-center justify-center min-h-[70vh] gap-1",
+                p { class: "text-primary text-xl", "No items in current folder" }
+
+                p { class: "text-secondary text-sm", "Add items to this folder to showcase them" }
+            }
+        } else {
+            div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center",
+                for item in filtered_items.read().iter() {
+                    ItemCard { item: item.clone(), inventory }
                 }
             }
         }
