@@ -56,7 +56,6 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
     let mut app_state: AppState = use_context();
     let mut selected_folder = app_state.selected_folder;
 
-    let mut active_popup = app_state.active_popup;
     let folders = inventory.read().folders.clone();
     use_scroll_into_center(selected_folder, "folders-scroll", "folder-");
 
@@ -93,8 +92,7 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
                             oncontextmenu: move |e| {
                                 e.prevent_default();
                                 let pos = e.client_coordinates();
-                                active_popup
-                                    .set(Some((folder_id, PopupType::HeaderContextMenuFolder)));
+                                app_state.open_popup(folder_id, PopupType::HeaderContextMenuFolder);
                                 app_state.popup_position.set((pos.x - 30., pos.y + 30.));
                             },
                             "{folder.name}"
