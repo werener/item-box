@@ -11,7 +11,7 @@ const BUTTON_CLASS: &str = "h-7 w-7 font-semibold text-primary-muted
             hover:bg-accent hover:text-primary-hover";
 
 #[component]
-pub fn ControlPanel(inventory: Signal<Inventory>) -> Element {
+pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
     let storage: Arc<dyn Storage> = use_context();
 
     let mut search_query = use_signal(|| String::new());

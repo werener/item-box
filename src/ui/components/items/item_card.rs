@@ -1,5 +1,5 @@
 // src/ui/components/items/item_card.rs
-use super::control_panel::ControlPanel;
+use super::control_panel::ControlPanelItem;
 use super::image_slider::ImageSlider;
 use crate::core::inventory::Inventory;
 use crate::core::models::{Folder, Item, Tag};
@@ -39,7 +39,7 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
             }
 
             div { class: "h-[10%]",
-                ControlPanel { item: item.clone(), inventory }
+                ControlPanelItem { item: item.clone(), inventory }
             }
         }
     }

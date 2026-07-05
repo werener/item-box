@@ -21,7 +21,7 @@ pub fn App() -> Element {
 
         div { class: "h-screen w-full bg-surface overflow-y-auto",
             Header { folders }
-            ControlPanel { inventory }
+            ControlPanelInventory { inventory }
             ItemGrid { inventory }
         }
     }

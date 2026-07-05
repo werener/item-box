@@ -6,5 +6,5 @@ mod items;
 
 pub mod prelude {
     pub use super::items::prelude::*;
-    pub use super::{control_panel::ControlPanel, header::Header};
+    pub use super::{control_panel::ControlPanelInventory, header::Header};
 }

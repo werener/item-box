@@ -24,7 +24,7 @@ const BUTTON_CLASS: &str = "w-5 h-5 text-primary-muted font-semibold
                     flex items-center justify-center";
 
 #[component]
-pub fn ControlPanel(item: Item, inventory: Signal<Inventory>) -> Element {
+pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
     let mut app_state: AppState = use_context();
 
     let item_id = item.id;
