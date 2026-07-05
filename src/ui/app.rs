@@ -1,6 +1,7 @@
 // src/ui/app.rs
 use super::components::prelude::*;
 use super::state::AppState;
+use super::state::constants::POPUP_Z_LEVEL;
 use crate::core::storage::create_storage;
 use dioxus::prelude::*;
 
@@ -10,8 +11,7 @@ pub fn App() -> Element {
     let app_state = use_hook(|| AppState::new());
 
     let inventory = use_signal(|| storage.load().unwrap_or_default());
-
-    let folders = inventory.read().folders.clone();
+    let mut active_popup = app_state.active_popup;
 
     use_context_provider(|| storage);
     use_context_provider(|| app_state);
@@ -20,9 +20,16 @@ pub fn App() -> Element {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
         div { class: "h-screen w-full bg-surface overflow-y-auto",
-            Header { folders }
+            Header { inventory }
             ControlPanelInventory { inventory }
             ItemGrid { inventory }
+        }
+        if active_popup().is_some() {
+            div {
+                class: "fixed inset-0 z-{POPUP_Z_LEVEL-20}",
+                onclick: move |_| active_popup.set(None),
+                oncontextmenu: move |_| active_popup.set(None),
+            }
         }
     }
 }

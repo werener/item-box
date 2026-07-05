@@ -1,5 +1,11 @@
 // src/ui/components/header.rs
-use crate::{core::models::Folder, ui::state::AppState};
+use crate::{
+    core::{
+        inventory::{self, Inventory},
+        models::Folder,
+    },
+    ui::state::{constants::POPUP_Z_LEVEL, AppState, PopupType},
+};
 use dioxus::{document::eval, prelude::*};
 
 /// Centers the container view around the chosen element.
@@ -32,9 +38,12 @@ pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
 }
 
 #[component]
-pub fn Header(folders: Vec<Folder>) -> Element {
-    let app_state: AppState = use_context();
+pub fn Header(inventory: Signal<Inventory>) -> Element {
+    let mut app_state: AppState = use_context();
     let mut selected_folder = app_state.selected_folder;
+
+    let mut active_popup = app_state.active_popup;
+    let folders = inventory.read().folders.clone();
 
     use_scroll_into_center(selected_folder, "folders-scroll", "folder-");
 
@@ -45,15 +54,16 @@ pub fn Header(folders: Vec<Folder>) -> Element {
 
             style: "scrollbar-width: none; -ms-overflow-style: none",
             class: "sticky top-0 z-10 bg-surface-accented",
-            class: "flex items-center gap-2 p-2 overflow-x-auto scroll-smooth overscroll-contain",
+            class: "flex items-center gap-2 p-2 overflow-x-auto overflow-y-none scroll-smooth overscroll-contain",
             onwheel: move |e: Event<WheelData>| {
                 spawn(async move {
                     let delta_y = e.data().delta().strip_units().y;
+
                     let _ = document::eval(
                             &format!(
                                 r#"
-                                    const container = document.getElementById('folders-scroll');
-                                    if (container) {{
+                                    const container = document.getElementById('folders-scroll'); 
+                                    if (container) {{ 
                                         container.scrollBy({{
                                             left: {delta_y},
                                             behavior: 'smooth'
@@ -72,13 +82,21 @@ pub fn Header(folders: Vec<Folder>) -> Element {
                         button {
                             key: "{folder_id}",
                             id: "folder-{folder_id}",
-                            class: "px-3 py-1 rounded-lg text-sm shrink-0 font-semibold transition-colors",
+                            class: "px-3 py-1 rounded-lg text-sm shrink-0 font-semibold",
                             class: if selected_folder() == Some(folder_id) { "hover:bg-accent-hover bg-accent text-primary" } else { "hover:bg-accent bg-surface-accented-muted text-primary-muted" },
                             onclick: move |_| {
                                 selected_folder
                                     .set(
-                                        if selected_folder() == Some(folder_id) { None } else { Some(folder_id) },
-                                    );
+                                        if selected_folder() == Some(folder_id) { None } else { Some(folder_id) }, // Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position // Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position
+                                    ); // Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position  Capture exact mouse position // Capture exact mouse position
+                            },
+                            // Capture exact mouse position
+                            oncontextmenu: move |e| {
+                                e.prevent_default();
+                                let pos = e.client_coordinates();
+                                active_popup
+                                    .set(Some((folder_id, PopupType::HeaderContextMenuFolder)));
+                                app_state.popup_position.set((pos.x - 30., pos.y + 30.));
                             },
                             "{folder.name}"
                         }
@@ -86,6 +104,24 @@ pub fn Header(folders: Vec<Folder>) -> Element {
                 }
             }
         }
+        if let Some((folder_id, PopupType::HeaderContextMenuFolder)) = (active_popup)() {
+            {
+                let (x, y) = (app_state.popup_position)();
 
+                rsx! {
+                    div {
+                        class: "fixed z-{POPUP_Z_LEVEL} bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 min-w-[120px]",
+                        style: "top: {y}px; left: {x}px;",
+
+                        button { class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
+                            "Rename"
+                        }
+                        button { class: "px-2 py-1 text-xs text-left text-red-500 hover:bg-red-500/10 hover:text-red-600 rounded truncate",
+                            "Delete"
+                        }
+                    }
+                }
+            }
+        }
     }
 }

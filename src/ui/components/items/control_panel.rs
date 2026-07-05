@@ -63,11 +63,11 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS} w-auto gap-1 px-1",
                     title: "Move to folder",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Folder),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemChangeFolder),
                     "🖿"
                     span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
                 }
-                if app_state.is_popup_open(item_id, PopupType::Folder) {
+                if app_state.is_popup_open(item_id, PopupType::ItemChangeFolder) {
                     FolderPopup {
                         folder,
                         folders: inventory.read().folders.clone(),
@@ -80,23 +80,23 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Add tag",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Tag),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemAddTag),
                     "#"
                 }
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Edit item",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Edit),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemEdit),
                     PencilIcon {}
                 }
 
                 button {
                     class: "{BUTTON_CLASS} hover:text-red-500",
                     title: "Delete item",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::Delete),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemDelete),
                     TrashIcon {}
                 }
-                if app_state.is_popup_open(item_id, PopupType::Delete) {
+                if app_state.is_popup_open(item_id, PopupType::ItemDelete) {
                     DeletePopup { item_name, callback: events.on_delete }
                 }
             }
