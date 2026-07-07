@@ -7,19 +7,12 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
-    let tags: Vec<Tag> = item
-        .tags
-        .iter()
-        .filter_map(|id| (inventory()).get_tag(*id).cloned())
-        .collect();
-
     let images = vec![
         asset!("/assets/images/tool-placeholder-2.png").to_string(),
         asset!("/assets/images/tool-placeholder.png").to_string(),
         asset!("/assets/images/tool-placeholder.png").to_string(),
     ];
 
-    
     rsx! {
         div { class: "relative w-full aspect-[9/16] bg-surface-muted
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
@@ -31,7 +24,7 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
 
             div { class: "h-[30%] flex flex-col",
                 ItemData { item: item.clone() }
-                Tags { tags }
+                Tags { item: item.clone(), inventory }
             }
 
             div { class: "h-[10%]",
@@ -42,15 +35,34 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
 }
 
 #[component]
-fn Tags(tags: Vec<Tag>) -> Element {
+fn Tags(item: Item, inventory: Signal<Inventory>) -> Element {
+    let tags: Vec<Tag> = item
+        .tags
+        .iter()
+        .filter_map(|id| (inventory()).get_tag(*id).cloned())
+        .collect();
+
     rsx! {
         div { class: "flex px-0.5 gap-0.5 mt-auto items-center select-none",
-            for tag in tags.iter().take(3) {
-                span {
-                    class: "text-[12px] px-1 py-0.25",
-                    class: "rounded-xl truncate whitespace-nowrap flex-1 max-w-[10ch]",
-                    style: "background-color: #{tag.color.to_hex()};",
-                    "{tag.name}"
+            for tag in tags.clone().into_iter().take(3) {
+                div { class: "truncate relative group flex-1 max-w-[10ch]",
+                    div {
+                        class: "text-[12px] px-1 py-0.25 group-hover:pr-5",
+                        class: "rounded-xl truncate whitespace-nowrap block",
+                        style: "background-color: #{tag.color.to_hex()};",
+                        "{tag.name}"
+                        button {
+                            class: "absolute right-1 top-1/2 -translate-y-1/2",
+                            class: "w-4 h-4 rounded-full flex items-center justify-center text-[10px]",
+                            class: "bg-secondary-muted text-primary",
+                            class: "transition-opacity opacity-0 group-hover:opacity-80 ",
+                            onclick: move |_| {
+                                inventory.write().remove_tag_from_item(item.id, tag.id);
+                            },
+                            "×"
+                        }
+                    }
+                
                 }
             }
             if tags.len() > 3 {
