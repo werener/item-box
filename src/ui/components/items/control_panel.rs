@@ -5,9 +5,9 @@ use uuid::Uuid;
 use crate::core::{inventory::Inventory, models::Item};
 use crate::ui::components::{
     icons::{PencilIcon, TrashIcon},
-    popups::*,
+    popups::prelude::*,
 };
-use crate::ui::state::{AppState, PopupType};
+use crate::ui::state::AppState;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[fully_pub::fully_pub]
@@ -28,7 +28,6 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
     let mut app_state: AppState = use_context();
 
     let item_id = item.id;
-    let item_name = item.name.clone();
     let folder = item.folder;
 
     let folder_name = folder
@@ -68,7 +67,7 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                     span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
                 }
                 if app_state.is_popup_open(item_id, PopupType::ItemContextMenuFolders) {
-                    FolderListPopup {
+                    ChoiceOfFolder {
                         folder,
                         folders: inventory.read().folders.clone(),
                         callback: events.on_change_folder,
@@ -100,22 +99,5 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
             }
         
         }
-        if app_state.is_popup_open(item_id, PopupType::ItemDelete) {
-            DeleteConfirmationPopup { name: item_name, callback: events.on_delete }
-        }
-        // // tag menu
-        // if show_tag_menu() {
-        //     div { class: "absolute bottom-10 right-2 z-30 bg-surface rounded-md shadow-lg border border-secondary-muted p-1 flex flex-col gap-1 max-h-40 overflow-y-auto min-w-[120px]",
-        //         button {
-        //             class: "px-2 py-1 text-xs text-left text-primary hover:bg-accent rounded truncate",
-        //             class: if folder.is_none() { "bg-accent-hover font-semibold" } else { "" },
-        //             onclick: move |_| {
-        //                 events.on_change_folder.call(None);
-        //                 show_folder_menu.set(false);
-        //             },
-        //             "None"
-        //         }
-        //     }
-        // }
     }
 }

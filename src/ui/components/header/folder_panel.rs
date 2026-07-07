@@ -2,14 +2,14 @@
 use crate::{
     core::inventory::Inventory,
     ui::{
-        components::popups::{DeleteConfirmationPopup, FolderActionPopup},
-        state::{AppState, PopupType},
+        components::popups::prelude::*,
+        state::{AppState},
     },
 };
 use dioxus::{document::eval, prelude::*};
 
 /// Centers the container view around the chosen element.
-pub fn use_scroll_into_center<T: ToString + Clone + 'static>(
+fn use_scroll_into_center<T: ToString + Clone + 'static>(
     selected: Signal<Option<T>>,
     container_id: &'static str,
     element_prefix: &'static str,
@@ -52,7 +52,7 @@ fn script(delta_y: f64) -> String {
 }
 
 #[component]
-pub fn Header(inventory: Signal<Inventory>) -> Element {
+pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
     let mut app_state: AppState = use_context();
     let mut selected_folder = app_state.selected_folder;
 
@@ -65,8 +65,9 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
             id: "folders-scroll",
 
             style: "scrollbar-width: none; -ms-overflow-style: none",
-            class: "sticky top-0 z-10 bg-surface-accented",
-            class: "flex items-center gap-2 p-2 overflow-x-auto overflow-y-none scroll-smooth overscroll-contain",
+            class: "flex items-center bg-surface-accented gap-2 p-2",
+            class: "overflow-x-auto overflow-y-none scroll-smooth overscroll-contain",
+
             onwheel: move |e: Event<WheelData>| {
                 spawn(async move {
                     let delta_y = e.data().delta().strip_units().y;
@@ -105,23 +106,13 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
         if let Some(folder_id) = app_state
             .is_popup_type_open(PopupType::HeaderContextMenuFolder)
         {
-            FolderActionPopup {
+            ActionsWithFolder {
                 edit_callback: Callback::new(move |_: ()| {
                     app_state.open_popup(folder_id, PopupType::FolderEdit);
                 }),
                 delete_callback: Callback::new(move |_: ()| {
                     app_state.open_popup(folder_id, PopupType::FolderDelete);
                 }),
-            }
-        }
-        if let Some(id) = app_state.is_popup_type_open(PopupType::FolderDelete) {
-            if let Some(folder) = inventory.read().get_folder(id) {
-                DeleteConfirmationPopup {
-                    name: folder.name.clone(),
-                    callback: Callback::new(move |_: ()| {
-                        inventory.write().remove_folder(id);
-                    }),
-                }
             }
         }
     }

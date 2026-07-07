@@ -1,11 +1,11 @@
 // src/ui/components/mod.rs
-mod control_panel;
-mod header;
+pub mod header;
 mod icons;
-mod items;
-mod popups;
+pub mod items;
+pub mod popups;
 
 pub mod prelude {
     pub use super::items::prelude::*;
-    pub use super::{control_panel::ControlPanelInventory, header::Header, popups::*};
+    pub use super::popups::prelude::*;
+    pub use super::header::prelude::*;
 }

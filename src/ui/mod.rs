@@ -1,4 +1,4 @@
 // src/ui/mod.rs
 pub mod app;
-mod components;
+pub mod components;
 mod state;

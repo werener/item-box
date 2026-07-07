@@ -1,7 +1,7 @@
 // src/ui/components/control_panel.rs
 use crate::core::inventory::Inventory;
 use crate::core::storage::Storage;
-use super::icons::FunnelIcon;
+use crate::ui::components::icons::FunnelIcon;
 use dioxus::prelude::*;
 use std::sync::Arc;
 
@@ -17,7 +17,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
     let mut search_query = use_signal(|| String::new());
 
     rsx! {
-        div { class: "flex items-center gap-2 p-1",
+        div { class: "flex items-center gap-2 p-1 sticky top-0 z-10 bg-surface/80",
             // Left-aligned
             div { class: "flex items-center gap-2 flex-1 min-w-4",
                 button {
@@ -30,7 +30,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
 
                 // TODO: add styling to the search field
                 input {
-                    class: "px-2 py-1 text-sm text-primary bg-surface w-full max-w-[29ch] sm:max-w-[32ch] md:max-w-[50ch] lg:max-w-[70%]",
+                    class: "px-2 py-1 text-sm text-primary bg-surface/80 w-full max-w-[29ch] sm:max-w-[32ch] md:max-w-[50ch] lg:max-w-[70%]",
                     class: "rounded-md shrink border-2 border-secondary-muted",
                     class: "focus:border-accent focus:outline-none",
 

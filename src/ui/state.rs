@@ -1,19 +1,7 @@
 // src/ui/state.rs
 use dioxus::prelude::*;
 use uuid::Uuid;
-
-#[derive(Clone, Copy, PartialEq, Debug, Default)]
-pub enum PopupType {
-    #[default]
-    Null,
-    ItemContextMenuFolders,
-    ItemAddTag,
-    ItemDelete,
-    ItemEdit,
-    HeaderContextMenuFolder,
-    FolderDelete,
-    FolderEdit,
-}
+use super::components::popups::types::PopupType;
 
 #[derive(Clone, Debug, Copy, Default)]
 #[fully_pub::fully_pub]
