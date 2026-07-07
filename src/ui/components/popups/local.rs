@@ -1,4 +1,7 @@
-use crate::{core::models::Folder, ui::{components::popups::types::PopupType, state::AppState}};
+use crate::{
+    core::models::Folder,
+    ui::{components::popups::types::PopupType, state::AppState},
+};
 use dioxus::prelude::*;
 use uuid::Uuid;
 
@@ -87,38 +90,55 @@ pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
 }
 
 #[component]
-pub fn RenameFolder(
-    folder_id: Uuid,
-    folder_name: String,
-    callback: Callback<String>,
-) -> Element {
+pub fn RenameFolder(folder_id: Uuid, folder_name: String, callback: Callback<String>) -> Element {
     let mut app_state: AppState = use_context();
     let mut new_name = use_signal(|| folder_name);
     let (x, y) = (app_state.popup_position)();
 
+    use_effect(move || {
+        spawn(async move {
+            let _ = document::eval(
+                r#"
+                    const input = document.getElementById('rename-folder-input');
+                    if (input) {
+                        input.focus();
+                    }
+                "#,
+            )
+            .await;
+        });
+    });
     rsx! {
         div {
-            class: "fixed {POPUP_LAYER} flex items-center gap-1 bg-surface rounded-md shadow-lg border border-secondary-muted p-1",
+            class: "fixed {POPUP_LAYER} flex items-center gap-1 p-1",
+            class: "bg-surface rounded-md shadow-xl border border-secondary-muted",
             style: "top: {y}px; left: {x}px;",
             onclick: move |e| e.stop_propagation(),
 
             input {
-                class: "px-2 py-1 text-xs bg-surface-accented border border-secondary-muted rounded focus:border-accent focus:outline-none w-32",
+                id: "rename-folder-input",
+                class: "px-2 py-1 text-xs w-32",
+                class: "rounded-md bg-surface border border-secondary-muted",
+                class: "focus:border-accent focus:outline-none",
                 value: "{new_name}",
                 oninput: move |e| new_name.set(e.value()),
                 onkeydown: move |e| {
-                    if e.key() == Key::Enter {
-                        callback.call(new_name());
-                        app_state.close_popup();
-                    } else if e.key() == Key::Escape {
-                        app_state.close_popup();
+                    match e.key() {
+                        Key::Enter => {
+                            callback.call(new_name());
+                            app_state.close_popup();
+                        }
+                        Key::Escape => {
+                            app_state.close_popup();
+                        }
+                        _ => {}
                     }
                 },
-                autofocus: true,
             }
 
             button {
-                class: "w-6 h-6 flex items-center justify-center text-accent-hover hover:bg-accent rounded transition-colors",
+                class: "w-6 h-6 flex items-center justify-center rounded-md ",
+                class: "text-accent-hover hover:bg-accent transition-colors",
                 onclick: move |_| {
                     callback.call(new_name());
                     app_state.close_popup();

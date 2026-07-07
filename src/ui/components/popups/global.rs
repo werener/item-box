@@ -2,7 +2,7 @@ use crate::ui::state::AppState;
 use dioxus::prelude::*;
 
 #[component]
-pub fn PopupBackdrop() -> Element {
+pub fn Backdrop() -> Element {
     let mut app_state: AppState = use_context();
     rsx! {
         div {
@@ -17,11 +17,41 @@ pub fn PopupBackdrop() -> Element {
 pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
     const BUTTON_CLASS: &str = "px-2 py-1 text-sm rounded-md transition-colors";
+
+    use_effect(move || {
+        spawn(async move {
+            let _ = document::eval(
+                r#"
+                const dialog = document.getElementById('delete-confirmation-dialog');
+                if (dialog) {
+                    dialog.focus();
+                }
+            "#,
+            )
+            .await;
+        });
+    });
+
     rsx! {
         div {
             class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+
             onclick: move |_| app_state.close_popup(),
             div {
+                id: "delete-confirmation-dialog",
+                tabindex: 0,
+                onkeydown: move |e| {
+                    match e.key() {
+                        Key::Enter => {
+                            app_state.close_popup();
+                            callback.call(());
+                        }
+                        Key::Escape => {
+                            app_state.close_popup();
+                        }
+                        _ => {}
+                    }
+                },
                 class: "flex flex-col bg-surface rounded-lg shadow-xl text-sm",
                 class: "w-[60%] max-w-sm w-full p-4 mx-4 gap-2",
                 onclick: move |e| e.stop_propagation(),
@@ -50,6 +80,5 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
                 }
             }
         }
-        PopupBackdrop {}
     }
 }

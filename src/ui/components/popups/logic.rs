@@ -53,7 +53,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
         }
 
         ItemContextMenuFolders | HeaderContextMenuFolder | FolderEdit => rsx! {
-            PopupBackdrop {}
+            Backdrop {}
         },
         ItemAddTag => rsx! {},
         ItemEdit => rsx! {},
