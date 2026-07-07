@@ -15,7 +15,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
         ItemDelete => {
             let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
 
-            rsx!{
+            rsx! {
                 if let Some(item) = inventory.read().get_item(id) {
                     DeleteConfirmation {
                         name: item.name.clone(),
@@ -23,13 +23,11 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
                             inventory.write().remove_item(id);
                         },
                     }
-                    PopupBackdrop {}
                 } else {
                     DeleteConfirmation {
                         name: String::from("?Unknown Item?"),
                         callback: move |_| {},
                     }
-                    PopupBackdrop {}
                 }
             }
         }
@@ -37,7 +35,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
         FolderDelete => {
             let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
 
-            rsx!{
+            rsx! {
                 if let Some(folder) = inventory.read().get_folder(id) {
                     DeleteConfirmation {
                         name: folder.name.clone(),
@@ -45,34 +43,19 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
                             inventory.write().remove_folder(id);
                         },
                     }
-                    PopupBackdrop {}
                 } else {
                     DeleteConfirmation {
                         name: String::from("?Unknown Item?"),
                         callback: move |_| {},
                     }
-                    PopupBackdrop {}
                 }
             }
         }
 
-        ItemContextMenuFolders | HeaderContextMenuFolder => rsx! {
+        ItemContextMenuFolders | HeaderContextMenuFolder | FolderEdit => rsx! {
             PopupBackdrop {}
         },
         ItemAddTag => rsx! {},
         ItemEdit => rsx! {},
-        FolderEdit => rsx! {},
-    }
-}
-
-#[component]
-fn PopupBackdrop() -> Element {
-    let mut app_state: AppState = use_context();
-    rsx! {
-        div {
-            class: "fixed inset-0 z-30",
-            onclick: move |_| app_state.close_popup(),
-            oncontextmenu: move |_| app_state.close_popup(),
-        }
     }
 }

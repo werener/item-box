@@ -2,6 +2,18 @@ use crate::ui::state::AppState;
 use dioxus::prelude::*;
 
 #[component]
+pub fn PopupBackdrop() -> Element {
+    let mut app_state: AppState = use_context();
+    rsx! {
+        div {
+            class: "fixed inset-0 z-30",
+            onclick: move |_| app_state.close_popup(),
+            oncontextmenu: move |_| app_state.close_popup(),
+        }
+    }
+}
+
+#[component]
 pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
     const BUTTON_CLASS: &str = "px-2 py-1 text-sm rounded-md transition-colors";
@@ -38,5 +50,6 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
                 }
             }
         }
+        PopupBackdrop {}
     }
 }
