@@ -1,10 +1,7 @@
 // src/ui/components/header.rs
 use crate::{
     core::inventory::Inventory,
-    ui::{
-        components::popups::prelude::*,
-        state::{AppState},
-    },
+    ui::{components::popups::prelude::*, state::AppState},
 };
 use dioxus::{document::eval, prelude::*};
 
@@ -107,6 +104,18 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
             .is_popup_type_open(PopupType::HeaderContextMenuFolder)
         {
             ActionsWithFolder { folder_id }
+        }
+
+        if let Some(folder_id) = app_state.is_popup_type_open(PopupType::FolderEdit) {
+            if let Some(folder) = inventory.read().get_folder(folder_id) {
+                RenameFolder {
+                    folder_id,
+                    folder_name: folder.name.clone(),
+                    callback: Callback::new(move |new_name: String| {
+                        inventory.write().rename_folder(folder_id, new_name);
+                    }),
+                }
+            }
         }
     }
 }

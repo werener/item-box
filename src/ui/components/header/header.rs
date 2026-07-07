@@ -7,6 +7,5 @@ pub fn Header(inventory: Signal<Inventory>) -> Element {
     rsx! {
         ControlPanelFolders { inventory }
         ControlPanelInventory { inventory }
-
     }
 }
