@@ -1,4 +1,4 @@
-use crate::{core::models::Folder, ui::state::AppState};
+use crate::{core::models::Folder, ui::{components::popups::types::PopupType, state::AppState}};
 use dioxus::prelude::*;
 use uuid::Uuid;
 
@@ -53,7 +53,7 @@ pub fn ChoiceOfFolder(
 }
 
 #[component]
-pub fn ActionsWithFolder(edit_callback: Callback, delete_callback: Callback) -> Element {
+pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
     let mut app_state: AppState = use_context();
     let (x, y) = (app_state.popup_position)();
 
@@ -68,8 +68,7 @@ pub fn ActionsWithFolder(edit_callback: Callback, delete_callback: Callback) -> 
             button {
                 class: "{BUTTON_CLASS} text-primary hover:bg-accent",
                 onclick: move |_| {
-                    app_state.close_popup();
-                    edit_callback.call(())
+                    app_state.open_popup(folder_id, PopupType::FolderEdit);
                 },
                 "Rename"
             }
@@ -77,8 +76,7 @@ pub fn ActionsWithFolder(edit_callback: Callback, delete_callback: Callback) -> 
                 class: "{BUTTON_CLASS} text-error-primary",
                 class: "hover:bg-error-primary-muted hover:text-error-primary-hover",
                 onclick: move |_| {
-                    app_state.close_popup();
-                    delete_callback.call(())
+                    app_state.open_popup(folder_id, PopupType::FolderDelete);
                 },
                 "Delete"
             }

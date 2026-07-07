@@ -106,14 +106,7 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
         if let Some(folder_id) = app_state
             .is_popup_type_open(PopupType::HeaderContextMenuFolder)
         {
-            ActionsWithFolder {
-                edit_callback: Callback::new(move |_: ()| {
-                    app_state.open_popup(folder_id, PopupType::FolderEdit);
-                }),
-                delete_callback: Callback::new(move |_: ()| {
-                    app_state.open_popup(folder_id, PopupType::FolderDelete);
-                }),
-            }
+            ActionsWithFolder { folder_id }
         }
     }
 }
