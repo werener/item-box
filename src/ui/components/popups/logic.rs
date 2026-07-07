@@ -15,44 +15,44 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
         ItemDelete => {
             let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
 
-            let name: String;
-            let callback: Callback;
-
-            if let Some(item) = inventory.read().get_item(id) {
-                name = item.name.clone();
-                callback = Callback::new(move |_| {
-                    inventory.write().remove_item(id);
-                });
-            } else {
-                name = String::from("?Unknown Item?");
-                callback = Callback::new(move |_| {});
-            }
-
-            rsx! {
-                DeleteConfirmation { name, callback }
-                PopupBackdrop {}
+            rsx!{
+                if let Some(item) = inventory.read().get_item(id) {
+                    DeleteConfirmation {
+                        name: item.name.clone(),
+                        callback: move |_| {
+                            inventory.write().remove_item(id);
+                        },
+                    }
+                    PopupBackdrop {}
+                } else {
+                    DeleteConfirmation {
+                        name: String::from("?Unknown Item?"),
+                        callback: move |_| {},
+                    }
+                    PopupBackdrop {}
+                }
             }
         }
 
         FolderDelete => {
             let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
 
-            let name: String;
-            let callback: Callback;
-
-            if let Some(folder) = inventory.read().get_folder(id) {
-                name = folder.name.clone();
-                callback = Callback::new(move |_| {
-                    inventory.write().remove_folder(id);
-                });
-            } else {
-                name = String::from("?Unknown Item?");
-                callback = Callback::new(move |_| {});
-            }
-
-            rsx! {
-                DeleteConfirmation { name, callback }
-                PopupBackdrop {}
+            rsx!{
+                if let Some(folder) = inventory.read().get_folder(id) {
+                    DeleteConfirmation {
+                        name: folder.name.clone(),
+                        callback: move |_| {
+                            inventory.write().remove_folder(id);
+                        },
+                    }
+                    PopupBackdrop {}
+                } else {
+                    DeleteConfirmation {
+                        name: String::from("?Unknown Item?"),
+                        callback: move |_| {},
+                    }
+                    PopupBackdrop {}
+                }
             }
         }
 

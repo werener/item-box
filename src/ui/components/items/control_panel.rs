@@ -9,15 +9,6 @@ use crate::ui::components::{
 };
 use crate::ui::state::AppState;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
-#[fully_pub::fully_pub]
-struct ItemCardEvents {
-    on_edit: Callback,
-    on_delete: Callback,
-    on_change_folder: Callback<Option<Uuid>>,
-    on_add_tag: Callback<Uuid>,
-    on_remove_tag: Callback<Uuid>,
-}
 
 const BUTTON_CLASS: &str = "w-5 h-5 text-primary-muted font-semibold
                     hover:text-accent-hover transition-colors
@@ -33,26 +24,6 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
     let folder_name = folder
         .and_then(|id| (inventory()).get_folder(id).map(|f| f.name.clone()))
         .unwrap_or("No Folder".to_string());
-
-    let events = ItemCardEvents {
-        on_edit: Callback::new(move |_| {}),
-
-        on_delete: Callback::new(move |_| {
-            inventory.write().remove_item(item_id);
-        }),
-
-        on_change_folder: Callback::new(move |new_folder_id: Option<Uuid>| {
-            inventory.write().change_item_folder(item_id, new_folder_id);
-        }),
-
-        on_add_tag: Callback::new(move |tag_id: Uuid| {
-            inventory.write().add_tag_to_item(item_id, tag_id);
-        }),
-
-        on_remove_tag: Callback::new(move |tag_id: Uuid| {
-            inventory.write().remove_tag_from_item(item_id, tag_id);
-        }),
-    };
 
     rsx! {
         div {
@@ -70,7 +41,9 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                     ChoiceOfFolder {
                         folder,
                         folders: inventory.read().folders.clone(),
-                        callback: events.on_change_folder,
+                        callback: move |new_folder_id: Option<Uuid>| {
+                            inventory.write().change_item_folder(item_id, new_folder_id);
+                        },
                     }
                 }
             }

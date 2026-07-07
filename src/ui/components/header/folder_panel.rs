@@ -111,9 +111,9 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
                 RenameFolder {
                     folder_id,
                     folder_name: folder.name.clone(),
-                    callback: Callback::new(move |new_name: String| {
+                    callback: move |new_name: String| {
                         inventory.write().rename_folder(folder_id, new_name);
-                    }),
+                    },
                 }
             }
         }
