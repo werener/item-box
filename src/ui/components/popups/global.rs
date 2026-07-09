@@ -83,38 +83,20 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     }
 }
 
-
 const INPUT_CLASS: &str = "px-2 py-1.5 text-sm bg-surface-accented border border-secondary-muted rounded focus:border-accent focus:outline-none";
 
 #[component]
 pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
     let mut app_state: AppState = use_context();
 
-    // Local form state
-    let mut name = use_signal(|| item.name());
-    let mut description = use_signal(|| item.description());
-    let mut price = use_signal(|| format!("{:.2}", item.price));
-    let mut location = use_signal(|| item.location());
+    let mut item = use_signal(|| item);
 
     let handle_save = Callback::new(move |_: ()| {
-        let mut updated = item.clone();
-        updated.name = name();
-        updated.description = if description().is_empty() {
-            None
-        } else {
-            Some(description())
-        };
-        updated.price = price().parse::<f64>().unwrap_or(0.0);
-        updated.location = if location().is_empty() {
-            None
-        } else {
-            Some(location())
-        };
-        callback.call(updated);
+        callback.call(item.read().clone());
         app_state.close_popup();
     });
 
-    let is_new = name().is_empty();
+    let is_new = item.read().name().is_empty();
 
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
@@ -143,8 +125,8 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                         "Name"
                         input {
                             class: "{INPUT_CLASS}",
-                            value: "{name}",
-                            oninput: move |e| name.set(e.value()),
+                            value: "{item.read().name()}",
+                            oninput: move |e| item.write().name = e.value(),
                             placeholder: "Item name",
                             autofocus: true,
                         }
@@ -156,8 +138,13 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                         "Description"
                         textarea {
                             class: "{INPUT_CLASS} resize-none h-20",
-                            value: "{description()}",
-                            oninput: move |e| description.set(e.value()),
+                            value: "{item.read().description()}",
+                            oninput: move |e| {
+                                item.write().description = {
+                                    let new_descr = e.value();
+                                    if new_descr.is_empty() { None } else { Some(new_descr) }
+                                }
+                            },
                             placeholder: "Optional description",
                         }
                     }
@@ -169,8 +156,8 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                             "Price"
                             input {
                                 class: "{INPUT_CLASS}",
-                                value: "{price()}",
-                                oninput: move |e| price.set(e.value()),
+                                value: "{item.read().price.clone()}",
+                                oninput: move |e| item.write().price = e.value().parse::<f64>().unwrap_or(0.0),
                                 r#type: "number",
                                 step: "1",
                                 min: "0",
@@ -181,9 +168,14 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                             "Location"
                             input {
                                 class: "{INPUT_CLASS}",
-                                value: "{location()}",
-                                oninput: move |e| location.set(e.value()),
-                                placeholder: "e.g., Shelf A",
+                                value: "{item.read().location()}",
+                                oninput: move |e| {
+                                    item.write().location = {
+                                        let new_location = e.value();
+                                        if new_location.is_empty() { None } else { Some(new_location) }
+                                    }
+                                },
+                                placeholder: "Where the item is located",
                             }
                         }
                     }
