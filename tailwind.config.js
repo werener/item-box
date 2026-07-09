@@ -25,7 +25,7 @@ module.exports = {
                     muted: '#fffefd',
                     accented: {
                         DEFAULT: '#ffe7c3',
-                        muted: '#fde3b9'
+                        muted: '#ffeed1'
                     },
                 },
                 error: {

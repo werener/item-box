@@ -83,8 +83,6 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     }
 }
 
-const INPUT_CLASS: &str = "px-2 py-1.5 text-sm bg-surface-accented border border-secondary-muted rounded focus:border-accent focus:outline-none";
-
 #[component]
 pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
     let mut app_state: AppState = use_context();
@@ -112,32 +110,29 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                     }
                 }
 
-                form {
+                div {
                     class: "flex flex-col gap-3",
                     onsubmit: move |e| {
                         e.prevent_default();
                         handle_save(());
                     },
 
-                    // Name
-                    label { class: "flex flex-col gap-1 min-w-0",
-                        span { class: "text-xs text-secondary" }
-                        "Name"
-                        input {
-                            class: "{INPUT_CLASS}",
-                            value: "{item.read().name()}",
-                            oninput: move |e| item.write().name = e.value(),
-                            placeholder: "Item name",
-                            autofocus: true,
-                        }
+                    CustomLabel {
+                        title: "Name",
+                        value: item.read().name(),
+                        oninput: move |e: Event<FormData>| item.write().name = e.value(),
+                        placeholder: "Item name",
+                        autofocus: true,
                     }
 
-                    // Description
                     label { class: "flex flex-col gap-1 min-w-0",
-                        span { class: "text-xs text-secondary" }
-                        "Description"
+                        span { class: "text-xs text-secondary", "Description" }
+
                         textarea {
-                            class: "{INPUT_CLASS} resize-none h-20",
+                            class: "px-2 py-1.5 text-sm bg-surface resize-none h-20",
+                            class: "border border-secondary-muted rounded",
+                            class: "focus:border-accent focus:outline-none",
+
                             value: "{item.read().description()}",
                             oninput: move |e| {
                                 item.write().description = {
@@ -149,53 +144,46 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                         }
                     }
 
-                    // Price & Location
                     div { class: "flex gap-3",
-                        label { class: "flex-1 flex flex-col gap-1 min-w-0",
-                            span { class: "text-xs text-secondary" }
-                            "Price"
-                            input {
-                                class: "{INPUT_CLASS}",
-                                value: "{item.read().price.clone()}",
-                                oninput: move |e| item.write().price = e.value().parse::<f64>().unwrap_or(0.0),
-                                r#type: "number",
-                                step: "1",
-                                min: "0",
-                            }
+                        CustomLabel {
+                            title: "Price",
+                            value: item.read().price.clone(),
+                            oninput: move |e: Event<FormData>| {
+                                item.write().price = e.value().parse::<f64>().unwrap_or(0.0);
+                            },
+                            r#type: "number",
+                            step: "1",
+                            min: "0",
                         }
-                        label { class: "flex-1 flex flex-col gap-1 min-w-0",
-                            span { class: "text-xs text-secondary" }
-                            "Location"
-                            input {
-                                class: "{INPUT_CLASS}",
-                                value: "{item.read().location()}",
-                                oninput: move |e| {
-                                    item.write().location = {
-                                        let new_location = e.value();
-                                        if new_location.is_empty() { None } else { Some(new_location) }
-                                    }
-                                },
-                                placeholder: "Where the item is located",
-                            }
+                        CustomLabel {
+                            title: "Location",
+                            value: item.read().location(),
+                            oninput: move |e: Event<FormData>| {
+                                item.write().location = {
+                                    let new_location = e.value();
+                                    if new_location.is_empty() { None } else { Some(new_location) }
+                                }
+                            },
+                            placeholder: "Item location",
                         }
                     }
 
-                    // Buttons
                     div { class: "flex justify-end mt-2 gap-2",
                         button {
-                            r#type: "button",
-                            class: "px-3 py-1.5 text-sm rounded-md bg-surface-accented text-primary-muted hover:text-primary transition-colors",
+                            class: "px-3 py-1.5 rounded-md text-sm",
+                            class: "bg-surface-accented-muted text-primary",
+                            class: "hover:bg-accent hover:text-primary-hover transition-colors",
+
                             onclick: move |_| app_state.close_popup(),
-                            onkeydown: move |e| {
-                                if e.key() == Key::Escape {
-                                    app_state.close_popup()
-                                }
-                            },
+
                             "Cancel"
                         }
                         button {
-                            r#type: "submit",
-                            class: "px-3 py-1.5 text-sm rounded-md bg-accent text-primary hover:bg-accent-hover transition-colors",
+                            class: "px-3 py-1.5 rounded-md text-sm",
+                            class: "bg-surface-accented-muted text-primary",
+                            class: "hover:bg-accent hover:text-primary-hover transition-colors",
+
+                            onclick: move |_| handle_save(()),
                             onkeydown: move |e| {
                                 if e.key() == Key::Enter {
                                     handle_save(());
@@ -205,6 +193,31 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                         }
                     }
                 }
+            }
+        }
+
+    }
+}
+
+#[component]
+fn CustomLabel(
+    title: String,
+    value: String,
+    oninput: Callback<Event<FormData>>,
+    #[props(extends = input)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        label { class: "flex-1 flex flex-col gap-1 min-w-0",
+            span { class: "text-xs text-secondary", "{title}" }
+
+            input {
+                class: "px-2 py-1.5 text-sm bg-surface",
+                class: "border border-secondary-muted rounded",
+                class: "focus:border-accent focus:outline-none",
+
+                value,
+                oninput: move |e: Event<FormData>| { oninput.call(e) },
+                ..attributes,
             }
         }
     }
