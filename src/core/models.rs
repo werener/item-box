@@ -38,6 +38,10 @@ impl Item {
         }
     }
 
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn location(&self) -> String {
         if let Some(location) = self.location.clone() {
             return location;

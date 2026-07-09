@@ -88,6 +88,15 @@ impl Inventory {
 
     // Update
     // Items
+    fn change_item(&mut self, item_id: Uuid, new_item: Item) -> bool {
+        if let Some(item) = self.get_item_mut(item_id) {
+            new_item.clone_into(item);
+            true
+        } else {
+            false
+        }
+    }
+
     fn rename_item<S: Into<String>>(&mut self, item_id: Uuid, new_name: S) -> bool {
         if let Some(item) = self.get_item_mut(item_id) {
             item.name = new_name.into();

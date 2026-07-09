@@ -56,6 +56,18 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             Backdrop {}
         },
         ItemAddTag => rsx! {},
-        ItemEdit => rsx! {},
+        ItemEdit => {
+            let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
+            rsx! {
+                if let Some(item) = inventory().get_item(id) {
+                    ItemEditorPopup {
+                        item: item.clone(),
+                        callback: move |new_item| {
+                            inventory.write().change_item(id, new_item);
+                        },
+                    }
+                }
+            }
+        }
     }
 }
