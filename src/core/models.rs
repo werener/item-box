@@ -1,4 +1,5 @@
 // src/core/models.rs
+use crate::error::ItemError::{self, InvalidName, InvalidPrice};
 use fully_pub::fully_pub;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -36,6 +37,16 @@ impl Item {
             folder,
             tags,
         }
+    }
+
+    fn is_valid(&self) -> Result<(), ItemError> {
+        if self.name.is_empty() {
+            return Err(InvalidName);
+        }
+        if self.price < 0.0 {
+            return Err(InvalidPrice(self.price));
+        }
+        Ok(())
     }
 
     fn name(&self) -> String {
