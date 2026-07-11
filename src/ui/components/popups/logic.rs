@@ -1,5 +1,6 @@
 use super::global::*;
 use crate::core::inventory::Inventory;
+use crate::core::models::Item;
 use crate::ui::state::AppState;
 use dioxus::prelude::*;
 
@@ -70,6 +71,19 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        ItemAddTag | ItemCreate => rsx! {},
+        ItemCreate => {
+            let dummy_item = Item::default();
+
+            rsx! {
+                ItemEditorPopup {
+                    item: dummy_item.clone(),
+                    callback: move |new_item| {
+                        inventory.write().add_item_struct(new_item);
+                    },
+                }
+            }
+        }
+
+        ItemAddTag => rsx! {},
     }
 }

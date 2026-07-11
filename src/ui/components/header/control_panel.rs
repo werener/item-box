@@ -2,7 +2,10 @@
 use crate::core::inventory::Inventory;
 use crate::core::storage::Storage;
 use crate::ui::components::icons::FunnelIcon;
+use crate::ui::components::popups::types::PopupType;
+use crate::ui::state::AppState;
 use dioxus::prelude::*;
+use uuid::Uuid;
 use std::sync::Arc;
 
 const BUTTON_CLASS: &str = "h-[3ch] w-[3ch] font-semibold text-primary-muted
@@ -13,7 +16,7 @@ const BUTTON_CLASS: &str = "h-[3ch] w-[3ch] font-semibold text-primary-muted
 #[component]
 pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
     let storage: Arc<dyn Storage> = use_context();
-
+    let mut app_state: AppState = use_context();
     let mut search_query = use_signal(|| String::new());
 
     rsx! {
@@ -64,11 +67,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS} md:w-[7ch]",
                     title: "New item",
-                    onclick: move |_| {
-                        inventory
-                            .write()
-                            .add_item("Dummy Item", "", "", 0.0, None, vec![]);
-                    },
+                    onclick: move |_| app_state.open_popup(Uuid::new_v4(), PopupType::ItemCreate),
                     "+"
                     span { class: "hidden md:inline", "Item" }
                 }
