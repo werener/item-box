@@ -39,14 +39,21 @@ impl Item {
         }
     }
 
-    fn is_valid(&self) -> Result<(), ItemError> {
+    fn is_valid(&self) -> Result<(), Vec<ItemError>> {
+        let mut errors: Vec<ItemError> = Vec::new();
+
         if self.name.is_empty() {
-            return Err(InvalidName);
+            errors.push(InvalidName);
         }
         if self.price < 0.0 {
-            return Err(InvalidPrice(self.price));
+            errors.push(InvalidPrice);
         }
-        Ok(())
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
     }
 
     fn name(&self) -> String {

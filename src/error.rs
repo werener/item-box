@@ -18,6 +18,6 @@ pub enum ItemError {
     #[error("Name has to be non-empty")]
     InvalidName,
 
-    #[error("Price has to be more or equal to 0: {0}")]
-    InvalidPrice(f64)
+    #[error("Price has to be 0 or higher")]
+    InvalidPrice,
 }
