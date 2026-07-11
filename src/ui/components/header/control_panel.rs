@@ -28,7 +28,6 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                     span { class: "hidden lg:inline", "Filter" }
                 }
 
-                // TODO: add styling to the search field
                 input {
                     class: "px-2 py-1 text-sm text-primary bg-surface/80 w-full max-w-[29ch] sm:max-w-[32ch] md:max-w-[50ch] lg:max-w-[70%]",
                     class: "rounded-md shrink border-2 border-secondary-muted",

@@ -53,11 +53,6 @@ impl ImageSliderState {
 }
 
 /// ImageSlider is a component that renders an of images and a representation of currently chosen one.
-///
-/// TODO:
-/// 1) add skeleton-rendering for an image
-/// 2) add an "item-type" icon in the top-left corner
-/// 3) more interactive swipe photo-scrolling
 #[component]
 pub fn ImageSlider(images: Vec<String>) -> Element {
     let images_len = images.len();

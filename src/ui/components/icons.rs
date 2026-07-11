@@ -44,7 +44,7 @@ pub fn PencilIcon(#[props(extends = SvgAttributes)] attributes: Vec<Attribute>) 
     }
 }
 
-/// Custom icon of a trash can (8x8).
+/// Custom icon of a trash can (24x24).
 #[component]
 pub fn TrashIcon(#[props(extends = SvgAttributes)] attributes: Vec<Attribute>) -> Element {
     rsx! {
