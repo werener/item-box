@@ -1,4 +1,8 @@
-use crate::{core::models::Item, error::ItemError, ui::state::AppState};
+use crate::{
+    core::models::Item,
+    error::ItemError,
+    ui::{components::popups::types::PopupType, state::AppState},
+};
 use dioxus::prelude::*;
 
 #[component]
@@ -92,7 +96,11 @@ struct EditorErrors {
 #[component]
 pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
     let mut app_state: AppState = use_context();
-    let is_new = item.name().is_empty();
+    let is_new = if app_state.get_popup_type() == PopupType::ItemCreate {
+        true
+    } else {
+        false
+    };
 
     let mut item = use_signal(|| item);
 
