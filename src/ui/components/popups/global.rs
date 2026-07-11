@@ -1,4 +1,4 @@
-use crate::{core::models::Item, ui::state::AppState};
+use crate::{core::models::Item, error::ItemError, ui::state::AppState};
 use dioxus::prelude::*;
 
 #[component]
@@ -83,18 +83,42 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     }
 }
 
+type PopupError = Signal<Option<String>>;
+struct EditorErrors {
+    name_error: PopupError,
+    price_error: PopupError,
+}
+
 #[component]
 pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
     let mut app_state: AppState = use_context();
+    let is_new = item.name().is_empty();
 
     let mut item = use_signal(|| item);
 
-    let handle_save = Callback::new(move |_: ()| {
-        callback.call(item.read().clone());
-        app_state.close_popup();
-    });
+    let mut popup_errors = EditorErrors {
+        name_error: use_signal(|| None::<String>),
+        price_error: use_signal(|| None::<String>),
+    };
 
-    let is_new = item.read().name().is_empty();
+    let handle_save = Callback::new(move |_: ()| match item.read().is_valid() {
+        Ok(_) => {
+            callback.call(item.read().clone());
+            app_state.close_popup();
+        }
+        Err(errors) => {
+            for error in errors {
+                match error {
+                    ItemError::InvalidName => {
+                        popup_errors.name_error.set(Some(error.to_string()));
+                    }
+                    ItemError::InvalidPrice => {
+                        popup_errors.price_error.set(Some(error.to_string()))
+                    }
+                }
+            }
+        }
+    });
 
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
@@ -121,6 +145,7 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                         title: "Name",
                         value: item.read().name(),
                         oninput: move |e: Event<FormData>| item.write().name = e.value(),
+                        error_signal: popup_errors.name_error,
                         placeholder: "Item name",
                         autofocus: true,
                     }
@@ -151,6 +176,7 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                             oninput: move |e: Event<FormData>| {
                                 item.write().price = e.value().parse::<f64>().unwrap_or(0.0);
                             },
+                            error_signal: popup_errors.price_error,
                             r#type: "number",
                             step: "1",
                             min: "0",
@@ -204,6 +230,7 @@ fn CustomLabel(
     title: String,
     value: String,
     oninput: Callback<Event<FormData>>,
+    error_signal: Option<PopupError>,
     #[props(extends = input)] attributes: Vec<Attribute>,
 ) -> Element {
     rsx! {
@@ -216,8 +243,18 @@ fn CustomLabel(
                 class: "focus:border-accent focus:outline-none",
 
                 value,
-                oninput: move |e: Event<FormData>| { oninput.call(e) },
+                oninput: move |e: Event<FormData>| {
+                    if let Some(mut signal) = error_signal {
+                        signal.set(None);
+                    }
+                    oninput.call(e)
+                },
                 ..attributes,
+            }
+            if let Some(error) = error_signal {
+                span { class: "text-xs text-error-primary",
+                    {error.read().clone().unwrap_or_else(|| { "".to_string() })}
+                }
             }
         }
     }
