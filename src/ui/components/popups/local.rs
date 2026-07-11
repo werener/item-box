@@ -73,7 +73,7 @@ pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
             button {
                 class: "{BUTTON_CLASS} text-primary hover:bg-accent",
                 onclick: move |_| {
-                    app_state.open_popup(folder_id, PopupType::FolderEdit);
+                    app_state.open_popup(folder_id, PopupType::FolderUpdate);
                 },
                 "Rename"
             }

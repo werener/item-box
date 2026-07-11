@@ -2,11 +2,15 @@
 pub enum PopupType {
     #[default]
     Null,
-    ItemContextMenuFolders,
-    ItemAddTag,
+    ItemCreate,
+    ItemUpdate,
     ItemDelete,
-    ItemEdit,
-    HeaderContextMenuFolder,
+
+    FolderUpdate,
     FolderDelete,
-    FolderEdit,
+
+    ItemAddTag,
+
+    ItemContextMenuFolders,
+    HeaderContextMenuFolder,
 }

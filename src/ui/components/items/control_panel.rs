@@ -58,7 +58,7 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Edit",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemEdit),
+                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemUpdate),
                     PencilIcon {}
                 }
 

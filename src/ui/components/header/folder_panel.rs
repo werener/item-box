@@ -106,7 +106,7 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
             ActionsWithFolder { folder_id }
         }
 
-        if let Some(folder_id) = app_state.is_popup_type_open(PopupType::FolderEdit) {
+        if let Some(folder_id) = app_state.is_popup_type_open(PopupType::FolderUpdate) {
             if let Some(folder) = inventory.read().get_folder(folder_id) {
                 RenameFolder {
                     folder_id,

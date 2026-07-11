@@ -52,11 +52,11 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        ItemContextMenuFolders | HeaderContextMenuFolder | FolderEdit => rsx! {
+        ItemContextMenuFolders | HeaderContextMenuFolder | FolderUpdate => rsx! {
             Backdrop {}
         },
-        ItemAddTag => rsx! {},
-        ItemEdit => {
+
+        ItemUpdate => {
             let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
             rsx! {
                 if let Some(item) = inventory().get_item(id) {
@@ -69,5 +69,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
                 }
             }
         }
+
+        ItemAddTag | ItemCreate => rsx! {},
     }
 }
