@@ -5,11 +5,6 @@ use crate::ui::state::AppState;
 use dioxus::prelude::*;
 use std::sync::Arc;
 
-const BUTTON_CLASS: &str = "h-[3ch] w-[3ch] font-semibold text-primary-muted
-            transition-colors select-none
-            rounded-md flex justify-center items-center gap-1
-            hover:bg-accent hover:text-primary-hover";
-
 #[component]
 pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
     let storage: Arc<dyn Storage> = use_context();
@@ -19,17 +14,19 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "flex items-center gap-2 p-1 sticky top-0 z-10 bg-surface/80",
             // Left-aligned
-            div { class: "flex items-center gap-2 flex-1 min-w-4",
-                button {
-                    class: "{BUTTON_CLASS} min-w-7 lg:w-20",
+            div { class: "flex items-center gap-2 flex-1",
+                ControlButton {
+                    icon: rsx! {
+                        FunnelIcon { class: "h-5 w-5" }
+                    },
+                    text: "Filter",
                     title: "Filter",
+                    min_screen_size: "lg",
                     onclick: move |_| {},
-                    FunnelIcon { class: "h-5 w-5" }
-                    span { class: "hidden lg:inline", "Filter" }
                 }
-
                 input {
-                    class: "px-2 py-1 text-sm text-primary bg-surface/80 w-full max-w-[29ch] sm:max-w-[32ch] md:max-w-[50ch] lg:max-w-[70%]",
+                    class: "px-2 py-1 text-sm text-primary bg-surface/80 w-full",
+                    class: "max-w-[29ch] sm:max-w-[32ch] md:max-w-[50ch] lg:max-w-[70%]",
                     class: "rounded-md shrink border-2 border-secondary-muted",
                     class: "focus:border-accent focus:outline-none",
 
@@ -41,37 +38,39 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
 
             // Right-aligned
             div { class: "flex items-center gap-2 lg:gap-5 shrink-0",
-                button {
-                    class: "{BUTTON_CLASS} md:w-[6ch]",
+                ControlButton {
+                    icon: rsx! { "#" },
+                    text: "Tag",
                     title: "New Tag",
+                    min_screen_size: "md",
                     onclick: move |_| {},
-                    "#"
-                    span { class: "hidden md:inline", "Tag" }
                 }
 
-                button {
-                    class: "{BUTTON_CLASS} md:w-[9ch]",
-                    title: "New folder",
+                ControlButton {
+                    icon: rsx! { "🖿" },
+                    text: "Folder",
+                    title: "New Folder",
+                    min_screen_size: "md",
                     onclick: move |_| {
                         inventory
                             .write()
                             .add_folder("New folder");
                     },
-                    "🖿"
-                    span { class: "hidden md:inline", "Folder" }
                 }
 
-                button {
-                    class: "{BUTTON_CLASS} md:w-[7ch]",
+                ControlButton {
+                    icon: rsx! { "+" },
+                    text: "Item",
                     title: "New item",
+                    min_screen_size: "md",
                     onclick: move |_| app_state.open_popup(PopupType::ItemCreate),
-                    "+"
-                    span { class: "hidden md:inline", "Item" }
                 }
 
-                button {
-                    class: "{BUTTON_CLASS} sm:w-[8ch]",
+                ControlButton {
+                    icon: rsx! { "↶" },
+                    text: "Undo",
                     title: "Undo changes",
+                    min_screen_size: "sm",
                     onclick: {
                         let storage = storage.clone();
                         move |_| {
@@ -80,28 +79,56 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                             }
                         }
                     },
-                    "↶"
-                    span { class: "hidden sm:inline", "Undo" }
                 }
 
-                button {
-                    class: "{BUTTON_CLASS} sm:w-[7ch]",
+                ControlButton {
+                    icon: rsx! { "⟲" },
+                    text: "Sync",
                     title: "Sync",
-                    onclick: move |_| {
-                        let _ = storage.save(&inventory());
+                    min_screen_size: "sm",
+                    onclick: {
+                        let storage = storage.clone();
+                        move |_| {
+                            let _ = storage.clone().save(&inventory());
+                        }
                     },
-                    "⟲"
-                    span { class: "hidden sm:inline", "Sync" }
                 }
 
-                button {
-                    class: "{BUTTON_CLASS} sm:w-[9ch]",
+                ControlButton {
+                    icon: rsx! { "⋯" },
+                    text: "Other",
                     title: "Other",
-                    onclick: move |_| {},
-                    "⋯"
-                    span { class: "hidden sm:inline", "Other" }
+                    min_screen_size: "sm",
+                    onclick: |_| {},
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn ControlButton(
+    icon: Element,
+    text: String,
+    title: String,
+    min_screen_size: String,
+    onclick: Callback<Event<MouseData>>,
+) -> Element {
+    let full_button_size = text.len() + 1 + 2; // icon + text + padding
+    let span_class = format!("hidden {}:inline", min_screen_size);
+
+    rsx! {
+        button {
+            class: "h-[3ch] w-[{full_button_size}ch] px-1 min-w-7 font-semibold text-primary-muted rounded-md",
+            class: "transition-colors select-none",
+            class: "flex justify-center items-center gap-1",
+            class: "hover:bg-accent hover:text-primary-hover",
+
+            title: "{title}",
+            onclick: move |e| onclick.call(e),
+
+            {icon}
+            span { class: "{span_class}", "{text}" }
         }
     }
 }
