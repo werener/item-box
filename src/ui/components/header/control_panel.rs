@@ -1,11 +1,8 @@
 // src/ui/components/control_panel.rs
-use crate::core::inventory::Inventory;
-use crate::core::storage::Storage;
-use crate::ui::components::icons::FunnelIcon;
-use crate::ui::components::popups::types::PopupType;
+use crate::core::{inventory::Inventory, storage::Storage};
+use crate::ui::components::{icons::FunnelIcon, popups::types::PopupType};
 use crate::ui::state::AppState;
 use dioxus::prelude::*;
-use uuid::Uuid;
 use std::sync::Arc;
 
 const BUTTON_CLASS: &str = "h-[3ch] w-[3ch] font-semibold text-primary-muted
@@ -67,7 +64,7 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS} md:w-[7ch]",
                     title: "New item",
-                    onclick: move |_| app_state.open_popup(Uuid::new_v4(), PopupType::ItemCreate),
+                    onclick: move |_| app_state.open_popup(PopupType::ItemCreate),
                     "+"
                     span { class: "hidden md:inline", "Item" }
                 }

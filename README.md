@@ -7,6 +7,4 @@ items:
 3) more interactive swipe photo-scrolling
 
 popups:
-1) embed needed information in the PopupType itself for cleaner approach
-(in state: Signal<(Option<Uuid>, PopupType)> -> Signal<PopupType>)
-2) add a "global error" popup to indicate errors, specific to the whole app
+1) add a "global error" popup to indicate errors, specific to the whole app

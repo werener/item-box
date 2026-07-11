@@ -1,17 +1,15 @@
 use crate::{
-    core::models::Folder,
-    ui::{components::popups::types::PopupType, state::AppState},
+    core::models::Folder, ui::{components::popups::types::{Coords, FolderId, PopupType}, state::AppState},
 };
 use dioxus::prelude::*;
-use uuid::Uuid;
 
 const POPUP_LAYER: &str = "z-50";
 
 #[component]
 pub fn ChoiceOfFolder(
-    folder: Option<Uuid>,
+    folder: Option<FolderId>,
     folders: Vec<Folder>,
-    callback: Callback<Option<Uuid>>,
+    callback: Callback<Option<FolderId>>,
 ) -> Element {
     const BUTTON_CLASS: &str =
         "px-2 py-1 text-xs min-h-4 text-left text-primary hover:bg-accent rounded truncate";
@@ -58,9 +56,9 @@ pub fn ChoiceOfFolder(
 }
 
 #[component]
-pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
+pub fn ActionsWithFolder(folder_id: FolderId, coords: Coords) -> Element {
     let mut app_state: AppState = use_context();
-    let (x, y) = (app_state.popup_position)();
+    let (x, y)= coords;
 
     const BUTTON_CLASS: &str = "px-2 py-1 text-xs text-left rounded truncate";
     rsx! {
@@ -73,7 +71,7 @@ pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
             button {
                 class: "{BUTTON_CLASS} text-primary hover:bg-accent",
                 onclick: move |_| {
-                    app_state.open_popup(folder_id, PopupType::FolderUpdate);
+                    app_state.open_popup(PopupType::FolderUpdate(folder_id, coords));
                 },
                 "Rename"
             }
@@ -81,7 +79,7 @@ pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
                 class: "{BUTTON_CLASS} text-error-primary",
                 class: "hover:bg-error-primary-muted hover:text-error-primary-hover",
                 onclick: move |_| {
-                    app_state.open_popup(folder_id, PopupType::FolderDelete);
+                    app_state.open_popup(PopupType::FolderDelete(folder_id));
                 },
                 "Delete"
             }
@@ -90,10 +88,10 @@ pub fn ActionsWithFolder(folder_id: Uuid) -> Element {
 }
 
 #[component]
-pub fn RenameFolder(folder_id: Uuid, folder_name: String, callback: Callback<String>) -> Element {
+pub fn RenameFolder(folder_id: FolderId, folder_name: String, coords: Coords, callback: Callback<String>) -> Element {
     let mut app_state: AppState = use_context();
     let mut new_name = use_signal(|| folder_name);
-    let (x, y) = (app_state.popup_position)();
+    let (x, y) = coords;
 
     use_effect(move || {
         spawn(async move {

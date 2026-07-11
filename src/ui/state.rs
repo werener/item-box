@@ -1,14 +1,12 @@
 // src/ui/state.rs
 use dioxus::prelude::*;
-use uuid::Uuid;
-use super::components::popups::types::PopupType;
+use super::components::popups::types::*;
 
 #[derive(Clone, Debug, Copy, Default)]
 #[fully_pub::fully_pub]
 struct AppState {
-    selected_folder: Signal<Option<uuid::Uuid>>,
-    active_popup: Signal<(Option<Uuid>, PopupType)>,
-    popup_position: Signal<(f64, f64)>,
+    selected_folder: Signal<Option<FolderId>>,
+    active_popup: Signal<PopupType>,
 }
 
 #[fully_pub::fully_pub]
@@ -19,44 +17,31 @@ impl AppState {
         }
     }
 
-    fn get_popup_source(&self) -> Option<Uuid> {
-        (self.active_popup)().0
-    }
-
-    fn get_popup_type(&self) -> PopupType {
-        (self.active_popup)().1
+    fn get_popup(&self) -> PopupType {
+        (self.active_popup)()
     }
 
     /// Opens a popup, closing any other open popup
-    fn open_popup(&mut self, id: Uuid, popup_type: PopupType) {
-        self.active_popup.set((Some(id), popup_type));
+    fn open_popup(&mut self, popup_type: PopupType) {
+        self.active_popup.set(popup_type);
     }
 
     /// Closes currently open popup
     fn close_popup(&mut self) {
-        self.active_popup.set((None, PopupType::Null));
+        self.active_popup.set(PopupType::Null);
     }
 
     /// Toggles a popup: if it's already open for this item, close it; otherwise open it
-    fn toggle_popup(&mut self, id: Uuid, popup_type: PopupType) {
-        if self.is_popup_open(id, popup_type) {
+    fn toggle_popup(&mut self, popup_type: PopupType) {
+        if self.is_popup_open(popup_type) {
             self.close_popup();
         } else {
-            self.open_popup(id, popup_type);
+            self.open_popup(popup_type);
         }
     }
 
     /// Checks if a specific popup is currently open with a specific ID attached
-    fn is_popup_open(&self, id: Uuid, popup_type: PopupType) -> bool {
-        (self.active_popup)() == (Some(id), popup_type)
-    }
-
-    /// Checks if a specific popup type is currently open
-    fn is_popup_type_open(&self, popup_type: PopupType) -> Option<Uuid> {
-        let (id, active_type) = (self.active_popup)();
-        if active_type == popup_type {
-            return id;
-        }
-        None
+    fn is_popup_open(&self, popup_type: PopupType) -> bool {
+        (self.active_popup)() == popup_type
     }
 }

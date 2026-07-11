@@ -1,6 +1,5 @@
 // src/ui/components/items/control_panel.rs
 use dioxus::prelude::*;
-use uuid::Uuid;
 
 use crate::core::{inventory::Inventory, models::Item};
 use crate::ui::components::{
@@ -33,15 +32,15 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS} w-auto gap-1 px-1",
                     title: "Change folder",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemContextMenuFolders),
+                    onclick: move |_| app_state.toggle_popup(PopupType::ItemContextMenuFolders(item_id)),
                     "🖿"
                     span { class: "text-xs truncate pt-0.5 max-w-[10ch]", "{folder_name}" }
                 }
-                if app_state.is_popup_open(item_id, PopupType::ItemContextMenuFolders) {
+                if app_state.is_popup_open(PopupType::ItemContextMenuFolders(item_id)) {
                     ChoiceOfFolder {
                         folder,
                         folders: inventory.read().folders.clone(),
-                        callback: move |new_folder_id: Option<Uuid>| {
+                        callback: move |new_folder_id: Option<FolderId>| {
                             inventory.write().change_item_folder(item_id, new_folder_id);
                         },
                     }
@@ -52,20 +51,20 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Tags",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemAddTag),
+                    onclick: move |_| app_state.toggle_popup(PopupType::ItemAddTag(item_id)),
                     "#"
                 }
                 button {
                     class: "{BUTTON_CLASS}",
                     title: "Edit",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemUpdate),
+                    onclick: move |_| app_state.toggle_popup(PopupType::ItemUpdate(item_id)),
                     PencilIcon {}
                 }
 
                 button {
                     class: "{BUTTON_CLASS} hover:text-red-500",
                     title: "Delete",
-                    onclick: move |_| app_state.toggle_popup(item_id, PopupType::ItemDelete),
+                    onclick: move |_| app_state.toggle_popup(PopupType::ItemDelete(item_id)),
                     TrashIcon {}
                 }
             

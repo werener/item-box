@@ -90,8 +90,10 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
                             oncontextmenu: move |e| {
                                 e.prevent_default();
                                 let pos = e.client_coordinates();
-                                app_state.open_popup(folder_id, PopupType::HeaderContextMenuFolder);
-                                app_state.popup_position.set((pos.x - 30., pos.y + 30.));
+                                app_state
+                                    .open_popup(
+                                        PopupType::HeaderContextMenuFolder(folder_id, (pos.x - 30., pos.y + 30.)),
+                                    );
                             },
                             "{folder.name}"
                         }
@@ -100,17 +102,16 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        if let Some(folder_id) = app_state
-            .is_popup_type_open(PopupType::HeaderContextMenuFolder)
-        {
-            ActionsWithFolder { folder_id }
+        if let PopupType::HeaderContextMenuFolder(folder_id, coords) = app_state.get_popup() {
+            ActionsWithFolder { folder_id, coords }
         }
 
-        if let Some(folder_id) = app_state.is_popup_type_open(PopupType::FolderUpdate) {
+        if let PopupType::FolderUpdate(folder_id, coords) = app_state.get_popup() {
             if let Some(folder) = inventory.read().get_folder(folder_id) {
                 RenameFolder {
                     folder_id,
                     folder_name: folder.name.clone(),
+                    coords,
                     callback: move |new_name: String| {
                         inventory.write().rename_folder(folder_id, new_name);
                     },

@@ -10,12 +10,14 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
 
     let app_state: AppState = use_context();
 
-    match app_state.get_popup_type() {
+    match app_state.get_popup() {
         Null => rsx! {},
 
-        ItemDelete => {
-            let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
+        ItemContextMenuFolders(..) | HeaderContextMenuFolder(..) | FolderUpdate(..) => rsx! {
+            Backdrop {}
+        },
 
+        ItemDelete(id) => {
             rsx! {
                 if let Some(item) = inventory.read().get_item(id) {
                     DeleteConfirmation {
@@ -33,9 +35,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        FolderDelete => {
-            let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
-
+        FolderDelete(id) => {
             rsx! {
                 if let Some(folder) = inventory.read().get_folder(id) {
                     DeleteConfirmation {
@@ -53,12 +53,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        ItemContextMenuFolders | HeaderContextMenuFolder | FolderUpdate => rsx! {
-            Backdrop {}
-        },
-
-        ItemUpdate => {
-            let id = app_state.get_popup_source().unwrap_or_else(|| todo!());
+        ItemUpdate(id) => {
             rsx! {
                 if let Some(item) = inventory().get_item(id) {
                     ItemEditorPopup {
@@ -84,6 +79,8 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        ItemAddTag => rsx! {},
+        ItemAddTag(_) => rsx! {},
+
+        FolderCreate => rsx! {},
     }
 }

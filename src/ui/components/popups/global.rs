@@ -96,7 +96,7 @@ struct EditorErrors {
 #[component]
 pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
     let mut app_state: AppState = use_context();
-    let is_new = if app_state.get_popup_type() == PopupType::ItemCreate {
+    let is_new = if app_state.get_popup() == PopupType::ItemCreate {
         true
     } else {
         false
