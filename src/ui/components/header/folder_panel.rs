@@ -34,7 +34,7 @@ fn use_scroll_into_center<T: ToString + Clone + 'static>(
     });
 }
 
-fn script(delta_y: f64) -> String {
+fn horizontal_scroll(delta_y: f64) -> String {
     format!(
         r#"
             const container = document.getElementById('folders-scroll'); 
@@ -54,6 +54,7 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
     let mut selected_folder = app_state.selected_folder;
 
     let folders = inventory.read().folders.clone();
+    
     use_scroll_into_center(selected_folder, "folders-scroll", "folder-");
 
     rsx! {
@@ -68,7 +69,7 @@ pub fn ControlPanelFolders(inventory: Signal<Inventory>) -> Element {
             onwheel: move |e: Event<WheelData>| {
                 spawn(async move {
                     let delta_y = e.data().delta().strip_units().y;
-                    let _ = document::eval(&script(delta_y)).await;
+                    let _ = document::eval(&horizontal_scroll(delta_y)).await;
                 });
             },
 

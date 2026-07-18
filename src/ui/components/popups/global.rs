@@ -1,7 +1,9 @@
 use crate::{
     core::models::Item,
     error::ItemError,
-    ui::{components::popups::types::PopupType, state::AppState},
+    ui::{
+        components::hooks::autofocus_by_id, components::popups::types::PopupType, state::AppState,
+    },
 };
 use dioxus::prelude::*;
 
@@ -22,19 +24,7 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
     const BUTTON_CLASS: &str = "px-2 py-1 text-sm rounded-md transition-colors";
 
-    use_effect(move || {
-        spawn(async move {
-            let _ = document::eval(
-                r#"
-                const dialog = document.getElementById('delete-confirmation-dialog');
-                if (dialog) {
-                    dialog.focus();
-                }
-            "#,
-            )
-            .await;
-        });
-    });
+    autofocus_by_id("delete-confirmation-dialog");
 
     rsx! {
         div {
@@ -128,12 +118,23 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
         }
     });
 
+    autofocus_by_id("submit-item");
+
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
             div {
                 class: "flex flex-col bg-surface rounded-lg shadow-xl w-[90%] max-w-md p-4 gap-4",
                 onclick: move |e| e.stop_propagation(),
-
+                id: "submit-item",
+                tabindex: 0,
+                onkeydown: move |e| {
+                    match e.key() {
+                        Key::Escape => {
+                            app_state.close_popup();
+                        }
+                        _ => {}
+                    }
+                },
                 h2 { class: "text-lg font-semibold text-primary",
                     if is_new {
                         "Create Item"
@@ -146,7 +147,7 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                     class: "flex flex-col gap-3",
                     onsubmit: move |e| {
                         e.prevent_default();
-                        handle_save(());
+                        handle_save.call(());
                     },
 
                     CustomLabel {

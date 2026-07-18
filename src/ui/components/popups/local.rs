@@ -1,5 +1,12 @@
 use crate::{
-    core::models::Folder, ui::{components::popups::types::{Coords, FolderId, PopupType}, state::AppState},
+    core::models::Folder,
+    ui::{
+        components::{
+            hooks::autofocus_by_id,
+            popups::types::{Coords, FolderId, PopupType},
+        },
+        state::AppState,
+    },
 };
 use dioxus::prelude::*;
 
@@ -58,7 +65,7 @@ pub fn ChoiceOfFolder(
 #[component]
 pub fn ActionsWithFolder(folder_id: FolderId, coords: Coords) -> Element {
     let mut app_state: AppState = use_context();
-    let (x, y)= coords;
+    let (x, y) = coords;
 
     const BUTTON_CLASS: &str = "px-2 py-1 text-xs text-left rounded truncate";
     rsx! {
@@ -88,24 +95,18 @@ pub fn ActionsWithFolder(folder_id: FolderId, coords: Coords) -> Element {
 }
 
 #[component]
-pub fn RenameFolder(folder_id: FolderId, folder_name: String, coords: Coords, callback: Callback<String>) -> Element {
+pub fn RenameFolder(
+    folder_id: FolderId,
+    folder_name: String,
+    coords: Coords,
+    callback: Callback<String>,
+) -> Element {
     let mut app_state: AppState = use_context();
     let mut new_name = use_signal(|| folder_name);
     let (x, y) = coords;
 
-    use_effect(move || {
-        spawn(async move {
-            let _ = document::eval(
-                r#"
-                    const input = document.getElementById('rename-folder-input');
-                    if (input) {
-                        input.focus();
-                    }
-                "#,
-            )
-            .await;
-        });
-    });
+    autofocus_by_id("rename-folder-input");
+
     rsx! {
         div {
             class: "fixed {POPUP_LAYER} flex items-center gap-1 p-1",
