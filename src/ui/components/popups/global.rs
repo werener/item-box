@@ -76,7 +76,6 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
         }
     }
 }
-
 type ValidationError = Signal<Option<String>>;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -84,6 +83,7 @@ struct ValidationErrors {
     name_error: ValidationError,
     price_error: ValidationError,
 }
+
 impl ValidationErrors {
     fn new() -> Self {
         ValidationErrors {
@@ -110,7 +110,6 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
     let mut app_state: AppState = use_context();
 
     let item = use_signal(|| item);
-
     let mut popup_errors = ValidationErrors::new();
 
     let handle_save = Callback::new(move |_: ()| match item.read().is_valid() {
@@ -133,7 +132,8 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
             },
 
             div {
-                class: "flex flex-col bg-surface rounded-lg shadow-xl w-[90%] max-w-md max-h-[90vh] overflow-hidden",
+                class: "flex flex-col bg-surface rounded-lg shadow-xl overflow-hidden",
+                class: "w-[90%] max-w-sm sm:max-w-2xl max-h-[90vh]",
                 onclick: move |e| e.stop_propagation(),
 
                 form {
@@ -145,16 +145,19 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
 
                     Header {}
 
-                    div { class: "flex flex-col gap-4 p-4",
-                        // Photo area
-                        div { class: "w-full aspect-video bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg flex items-center justify-center",
+                    div { class: "grid grid-cols-1 sm:grid-cols-[1fr_1fr] gap-4 p-4",
+
+                        div {
+                            class: "flex items-center justify-center w-full aspect-video",
+                            class: "bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg",
                             span { class: "text-secondary text-sm", "Photo area" }
                         }
 
                         TextData { item, popup_errors }
 
-                        // Tags area
-                        div { class: "w-full min-h-[80px] bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg p-3 flex items-center justify-center",
+                        div {
+                            class: "flex items-center justify-center w-full min-h-[80px]",
+                            class: "bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg",
                             span { class: "text-secondary text-sm", "Tags area (dummy)" }
                         }
                     }
@@ -232,7 +235,7 @@ fn Header() -> Element {
 #[component]
 fn TextData(item: Signal<Item>, popup_errors: ValidationErrors) -> Element {
     rsx! {
-        div { class: "flex flex-col gap-3",
+        div { class: "flex flex-col gap-3 sm:row-span-2 min-w-0",
             CustomLabel {
                 title: "Name",
                 value: item.read().name(),
@@ -267,7 +270,7 @@ fn TextData(item: Signal<Item>, popup_errors: ValidationErrors) -> Element {
                     },
                     error_signal: popup_errors.price_error,
                     r#type: "number",
-                    step: "1",
+                    step: "0.01",
                     min: "0",
                 }
                 CustomLabel {
