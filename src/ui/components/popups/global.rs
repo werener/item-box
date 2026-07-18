@@ -118,23 +118,21 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
         }
     });
 
-    autofocus_by_id("submit-item");
+    autofocus_by_id("Name-input");
 
     rsx! {
-        div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+        div {
+            class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+            onkeydown: move |e| {
+                if e.key() == Key::Escape {
+                    app_state.close_popup();
+                }
+            },
+
             div {
                 class: "flex flex-col bg-surface rounded-lg shadow-xl w-[90%] max-w-md p-4 gap-4",
                 onclick: move |e| e.stop_propagation(),
-                id: "submit-item",
-                tabindex: 0,
-                onkeydown: move |e| {
-                    match e.key() {
-                        Key::Escape => {
-                            app_state.close_popup();
-                        }
-                        _ => {}
-                    }
-                },
+
                 h2 { class: "text-lg font-semibold text-primary",
                     if is_new {
                         "Create Item"
@@ -143,7 +141,7 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                     }
                 }
 
-                div {
+                form {
                     class: "flex flex-col gap-3",
                     onsubmit: move |e| {
                         e.prevent_default();
@@ -156,7 +154,6 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                         oninput: move |e: Event<FormData>| item.write().name = e.value(),
                         error_signal: popup_errors.name_error,
                         placeholder: "Item name",
-                        autofocus: true,
                     }
 
                     label { class: "flex flex-col gap-1 min-w-0",
@@ -205,25 +202,20 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
 
                     div { class: "flex justify-end mt-2 gap-2",
                         button {
+                            r#type: "button",
                             class: "px-3 py-1.5 rounded-md text-sm",
                             class: "bg-surface-accented-muted text-primary",
-                            class: "hover:bg-accent hover:text-primary-hover transition-colors",
-
+                            class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
                             onclick: move |_| app_state.close_popup(),
 
                             "Cancel"
                         }
                         button {
+                            r#type: "submit",
                             class: "px-3 py-1.5 rounded-md text-sm",
-                            class: "bg-surface-accented-muted text-primary",
-                            class: "hover:bg-accent hover:text-primary-hover transition-colors",
+                            class: "bg-accent text-primary",
+                            class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
 
-                            onclick: move |_| handle_save(()),
-                            onkeydown: move |e| {
-                                if e.key() == Key::Enter {
-                                    handle_save(());
-                                }
-                            },
                             "Save"
                         }
                     }
@@ -247,6 +239,7 @@ fn CustomLabel(
             span { class: "text-xs text-secondary", "{title}" }
 
             input {
+                id: "{title}-input",
                 class: "px-2 py-1.5 text-sm bg-surface",
                 class: "border border-secondary-muted rounded",
                 class: "focus:border-accent focus:outline-none",
