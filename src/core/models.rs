@@ -42,7 +42,7 @@ impl Item {
     fn is_valid(&self) -> Result<(), Vec<ItemError>> {
         let mut errors: Vec<ItemError> = Vec::new();
 
-        if self.name.is_empty() {
+        if self.name.trim().is_empty() {
             errors.push(InvalidName);
         }
         if self.price < 0.0 {
