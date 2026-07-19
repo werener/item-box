@@ -84,3 +84,8 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
         FolderCreate => rsx! {},
     }
 }
+
+#[component]
+pub fn NotificationWindow() -> Element {
+    rsx! {}
+}

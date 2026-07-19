@@ -6,7 +6,9 @@ use super::components::popups::types::*;
 #[fully_pub::fully_pub]
 struct AppState {
     selected_folder: Signal<Option<FolderId>>,
+    
     active_popup: Signal<PopupType>,
+    notifications: Signal<Vec<Notification>>
 }
 
 #[fully_pub::fully_pub]

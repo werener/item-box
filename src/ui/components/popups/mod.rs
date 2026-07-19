@@ -1,3 +1,4 @@
+pub mod notifications;
 mod global;
 pub mod local;
 pub mod logic;
