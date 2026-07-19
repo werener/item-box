@@ -26,7 +26,6 @@ pub enum PopupType {
 
 // Notifications
 use dioxus::prelude::*;
-use futures_timer::Delay;
 use std::time::Duration;
 
 pub const MAX_NOTIFICATIONS: usize = 3;
@@ -49,7 +48,7 @@ impl NotificationType {
 #[derive(Clone, Debug, PartialEq)]
 #[fully_pub::fully_pub]
 struct Notification {
-    id: u64,
+    id: Uuid,
     message: String,
     notification_type: NotificationType,
 }
@@ -57,10 +56,7 @@ struct Notification {
 impl Notification {
     pub fn new(message: impl Into<String>, notification_type: NotificationType) -> Self {
         Self {
-            id: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_nanos() as u64,
+            id: Uuid::new_v4(),
             message: message.into(),
             notification_type,
         }
@@ -73,21 +69,21 @@ pub struct NotificationState {
 }
 
 impl NotificationState {
-    fn notify(&mut self, message: impl Into<String>, notification_type: NotificationType) {
+    pub fn notify(&mut self, message: impl Into<String>, notification_type: NotificationType) {
         let notification = Notification::new(message, notification_type);
-        let duration = notification_type.duration();
         let id = notification.id;
+        let duration = notification_type.duration();
         let mut notifications = self.notifications;
-        
-        spawn(async move {
-            notifications.push(notification);
-            if notifications.len() > MAX_NOTIFICATIONS {
-                notifications.remove(0);
-            }
 
-            Delay::new(duration).await;
+        notifications.push(notification);
+        if notifications.len() > MAX_NOTIFICATIONS {
+            notifications.remove(0);
+        }
+
+        gloo_timers::callback::Timeout::new(duration.as_millis() as u32, move || {
             notifications.write().retain(|n| n.id != id);
-        });
+        })
+        .forget();
     }
 
     pub fn send_success(&mut self, message: impl Into<String>) {
@@ -98,7 +94,7 @@ impl NotificationState {
         self.notify(message, NotificationType::Error);
     }
 
-    pub fn dismiss(&mut self, id: u64) {
+    pub fn dismiss(&mut self, id: Uuid) {
         self.notifications.write().retain(|n| n.id != id);
     }
 
