@@ -26,8 +26,8 @@ pub enum PopupType {
 
 // Notifications
 use dioxus::prelude::*;
-use std::time::Duration;
 use futures_timer::Delay;
+use std::time::Duration;
 
 pub const MAX_NOTIFICATIONS: usize = 3;
 
@@ -75,16 +75,16 @@ pub struct NotificationState {
 impl NotificationState {
     fn notify(&mut self, message: impl Into<String>, notification_type: NotificationType) {
         let notification = Notification::new(message, notification_type);
-        let id = notification.id;
         let duration = notification_type.duration();
-
-        self.notifications.push(notification);
-        if self.notifications.len() > MAX_NOTIFICATIONS {
-            self.notifications.remove(0);
-        }
-
+        let id = notification.id;
         let mut notifications = self.notifications;
+        
         spawn(async move {
+            notifications.push(notification);
+            if notifications.len() > MAX_NOTIFICATIONS {
+                notifications.remove(0);
+            }
+
             Delay::new(duration).await;
             notifications.write().retain(|n| n.id != id);
         });
