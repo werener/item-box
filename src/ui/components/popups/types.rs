@@ -29,7 +29,7 @@ use dioxus::prelude::*;
 use std::time::Duration;
 use futures_timer::Delay;
 
-pub const MAX_NOTIFICATIONS: usize = 5;
+pub const MAX_NOTIFICATIONS: usize = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum NotificationType {
@@ -40,7 +40,7 @@ pub enum NotificationType {
 impl NotificationType {
     pub fn duration(&self) -> Duration {
         match self {
-            NotificationType::Success => Duration::from_secs(3),
+            NotificationType::Success => Duration::from_secs(5),
             NotificationType::Error => Duration::from_secs(5),
         }
     }
@@ -67,34 +67,22 @@ impl Notification {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct NotificationState {
     notifications: Signal<Vec<Notification>>,
 }
 
-#[fully_pub::fully_pub]
 impl NotificationState {
-    fn new() -> Self {
-        Self {
-            notifications: Signal::new(Vec::new()),
-        }
-    }
-
     fn notify(&mut self, message: impl Into<String>, notification_type: NotificationType) {
         let notification = Notification::new(message, notification_type);
         let id = notification.id;
         let duration = notification_type.duration();
 
-        let mut list = self.notifications;
-
-        list.push(notification);
-
-        // Remove oldest if over cap
-        if list.len() > MAX_NOTIFICATIONS {
-            list.remove(0);
+        self.notifications.push(notification);
+        if self.notifications.len() > MAX_NOTIFICATIONS {
+            self.notifications.remove(0);
         }
 
-        // Auto-dismiss
         let mut notifications = self.notifications;
         spawn(async move {
             Delay::new(duration).await;
@@ -102,19 +90,19 @@ impl NotificationState {
         });
     }
 
-    fn success(&mut self, message: impl Into<String>) {
+    pub fn send_success(&mut self, message: impl Into<String>) {
         self.notify(message, NotificationType::Success);
     }
 
-    fn error(&mut self, message: impl Into<String>) {
+    pub fn send_error(&mut self, message: impl Into<String>) {
         self.notify(message, NotificationType::Error);
     }
 
-    fn dismiss(&mut self, id: u64) {
+    pub fn dismiss(&mut self, id: u64) {
         self.notifications.write().retain(|n| n.id != id);
     }
 
-    fn get_notifications(&self) -> Vec<Notification> {
+    pub fn get_notifications(&self) -> Vec<Notification> {
         self.notifications.read().clone()
     }
 }
