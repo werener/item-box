@@ -6,7 +6,7 @@ use std::fmt;
 use uuid::Uuid;
 
 /// Item represents any item with all its information attached.
-#[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
 struct Item {
     id: Uuid,
@@ -16,6 +16,20 @@ struct Item {
     price: f64,
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
+}
+
+impl Default for Item {
+    fn default() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            location: None,
+            description: None,
+            name: String::default(),
+            price: 0.0,
+            folder: None,
+            tags: vec![],
+        }
+    }
 }
 
 #[fully_pub]
