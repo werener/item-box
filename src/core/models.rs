@@ -107,6 +107,9 @@ impl Folder {
             name,
         }
     }
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
 }
 
 /// Tag represents an affiliation of a item to a particular group.

@@ -26,7 +26,9 @@ pub fn NotificationComponent(notification: Notification) -> Element {
 
             div { class: "flex items-center justify-left gap-2 min-w-0",
                 {icon}
-                span { class: "text-sm font-medium break-words text-center", "{notification.message}" }
+                span { class: "text-sm font-medium break-words text-left line-clamp-2",
+                    "{notification.message}"
+                }
             }
         }
     }

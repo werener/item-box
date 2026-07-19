@@ -39,8 +39,8 @@ pub enum NotificationType {
 impl NotificationType {
     pub fn duration(&self) -> Duration {
         match self {
-            NotificationType::Success => Duration::from_secs(5),
-            NotificationType::Error => Duration::from_secs(5),
+            NotificationType::Success => Duration::from_secs(3),
+            NotificationType::Error => Duration::from_secs(3),
         }
     }
 }

@@ -68,7 +68,6 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
                         onclick: move |_| {
                             app_state.close_popup();
                             callback.call(());
-                            app_state.notifications.send_success("Successfully deleted {name}");
                         },
                         "Delete"
                     }
