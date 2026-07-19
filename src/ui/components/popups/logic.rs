@@ -1,5 +1,5 @@
 use super::global::*;
-use super::{notifications, types::*};
+use super::notifications::*;
 use crate::core::inventory::Inventory;
 use crate::core::models::Item;
 use crate::ui::state::AppState;
@@ -92,15 +92,10 @@ pub fn NotificationWindow() -> Element {
     let notifications = app_state.notifications.get_notifications();
 
     rsx! {
-        div { class: "fixed bottom-4 right-4 z-[100] w-[70%] flex flex-col gap-2",
+        div { class: "fixed bottom-4 right-4 z-30 w-[60%] max-w-xs flex flex-col gap-2",
 
             for notification in notifications.into_iter().rev() {
-                match notification.notification_type {
-                    NotificationType::Success => rsx! {
-                        notifications::Success { notification }
-                    },
-                    NotificationType::Error => rsx! {},
-                }
+                NotificationComponent { notification }
             }
         }
     }
