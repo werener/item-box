@@ -8,7 +8,7 @@ struct AppState {
     selected_folder: Signal<Option<FolderId>>,
 
     active_popup: Signal<PopupType>,
-    notifications: Signal<NotificationState>
+    notifications: NotificationState
 }
 
 #[fully_pub::fully_pub]

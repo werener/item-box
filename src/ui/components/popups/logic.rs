@@ -1,4 +1,5 @@
 use super::global::*;
+use super::{notifications, types::*};
 use crate::core::inventory::Inventory;
 use crate::core::models::Item;
 use crate::ui::state::AppState;
@@ -87,5 +88,20 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
 
 #[component]
 pub fn NotificationWindow() -> Element {
-    rsx! {}
+    let app_state: AppState = use_context();
+    let notifications = app_state.notifications.get_notifications();
+
+    rsx! {
+        div { class: "fixed bottom-4 right-4 z-[100] w-[70%] flex flex-col gap-2",
+
+            for notification in notifications.into_iter().rev() {
+                match notification.notification_type {
+                    NotificationType::Success => rsx! {
+                        notifications::Success { notification }
+                    },
+                    NotificationType::Error => rsx! {},
+                }
+            }
+        }
+    }
 }

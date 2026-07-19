@@ -21,7 +21,7 @@ pub fn App() -> Element {
             Header { inventory }
             ItemGrid { inventory }
         }
-
+        NotificationWindow {}
         PopupWindow { inventory }
     }
 }
