@@ -28,6 +28,12 @@ pub enum PopupType {
 use dioxus::prelude::*;
 use std::time::Duration;
 
+#[cfg(target_arch = "wasm32")]
+use gloo_timers::future::sleep;
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep;
+
 pub const MAX_NOTIFICATIONS: usize = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -81,7 +87,7 @@ impl NotificationState {
         }
 
         spawn(async move {
-            tokio::time::sleep(duration).await;
+            sleep(duration).await;
             notifications.write().retain(|n| n.id != id);
         });
     }
