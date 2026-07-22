@@ -1,6 +1,6 @@
 // src/ui/components/mod.rs
 pub mod header;
-mod hooks;
+pub mod hooks;
 mod icons;
 pub mod items;
 pub mod popups;

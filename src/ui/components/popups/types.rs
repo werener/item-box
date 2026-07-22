@@ -80,10 +80,10 @@ impl NotificationState {
             notifications.remove(0);
         }
 
-        gloo_timers::callback::Timeout::new(duration.as_millis() as u32, move || {
+        spawn(async move {
+            tokio::time::sleep(duration).await;
             notifications.write().retain(|n| n.id != id);
-        })
-        .forget();
+        });
     }
 
     pub fn send_success(&mut self, message: impl Into<String>) {

@@ -55,7 +55,6 @@ impl ImageProvider for DesktopImageProvider {
     async fn get_image_uri(&self, id: Uuid) -> Result<Option<String>, StorageError> {
         let file_path = self.image_dir.join(id.to_string());
 
-        // Updated: Non-blocking existence check and canonicalization
         if tokio::fs::try_exists(&file_path).await? {
             let canonical_path = tokio::fs::canonicalize(&file_path).await?;
             let path_str = canonical_path.to_string_lossy().replace('\\', "/");
@@ -68,7 +67,6 @@ impl ImageProvider for DesktopImageProvider {
     async fn delete_image(&self, id: Uuid) -> Result<(), StorageError> {
         let file_path = self.image_dir.join(id.to_string());
 
-        // Updated: Non-blocking existence check and removal
         if tokio::fs::try_exists(&file_path).await? {
             tokio::fs::remove_file(file_path).await?;
         }
@@ -78,7 +76,7 @@ impl ImageProvider for DesktopImageProvider {
 
 /// Web implementation of ImageProvider trait.
 ///
-/// Works with image data, stored stored in an indexed DB.
+/// Works with image data, stored in an IndexedDB.
 #[cfg(target_arch = "wasm32")]
 pub struct WebImageProvider {
     db_name: String,
@@ -94,24 +92,30 @@ impl WebImageProvider {
         }
     }
 
-    async fn get_db(&self) -> Result<idb::Database, StorageError> {
-        let factory = idb::Factory::new().map_err(|e| StorageError::WebStorage(e.to_string()))?;
+        async fn get_db(&self) -> Result<idb::Database, StorageError> {
+        // Required in idb 0.6 to access the .database() method on VersionChangeEvent
+        use idb::DatabaseEvent;
 
-        let db = factory
-            .open(&self.db_name, Some(1), |evt| {
-                let db = evt.database();
-                if !db.object_store_names().any(|name| name == self.store_name) {
-                    let mut params = idb::ObjectStoreParams::new();
-                    params.key_path(Some(&idb::KeyPath::from("id")));
-                    db.create_object_store(&self.store_name, params)
-                        .map_err(|e| StorageError::WebStorage(e.to_string()))
-                        .ok();
-                }
-                Ok(())
-            })
-            .await
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+        let factory = idb::Factory::new().map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
+        let mut req = factory
+            .open(&self.db_name, Some(1))
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
+        let store_name = self.store_name.clone();
+        req.on_upgrade_needed(move |evt| {
+            let db = evt.database().expect("Failed to get database during upgrade");
+            
+            // Use .contains() instead of .any() for cleaner Vec<String> checking
+            if !db.store_names().contains(&store_name) {
+                let mut params = idb::ObjectStoreParams::new();
+                params.key_path(Some(idb::KeyPath::new_single("id")));
+                db.create_object_store(&store_name, params)
+                    .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))
+                    .ok();
+            }
+        });
+
+        let db = req.await.map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         Ok(db)
     }
 }
@@ -124,28 +128,25 @@ impl ImageProvider for WebImageProvider {
         let db = self.get_db().await?;
         let tx = db
             .transaction(&[&self.store_name], idb::TransactionMode::ReadWrite)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
-
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         let store = tx
             .object_store(&self.store_name)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
-        // Convert Rust slice to Js Uint8Array for IndexedDB
         let js_array = js_sys::Uint8Array::from(data);
         let js_value: wasm_bindgen::JsValue = js_array.into();
-
         let mut record = js_sys::Object::new();
         js_sys::Reflect::set(&record, &"id".into(), &id.to_string().into()).ok();
         js_sys::Reflect::set(&record, &"data".into(), &js_value).ok();
 
+        // put() requires the value and an optional key (None since we use keyPath)
         store
-            .put(&record)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .put(&record, None)
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
+        // In idb 0.6, tx.await directly returns Result<TransactionResult, Error>
         tx.await
-            .into_result()
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
-
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         Ok(id)
     }
 
@@ -153,35 +154,37 @@ impl ImageProvider for WebImageProvider {
         let db = self.get_db().await?;
         let tx = db
             .transaction(&[&self.store_name], idb::TransactionMode::ReadOnly)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
-
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         let store = tx
             .object_store(&self.store_name)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
+        // Query in idb 0.6 requires a JsValue, which implements Into<Query>
+        let query: wasm_bindgen::JsValue = id.to_string().into();
         let result = store
-            .get(&id.to_string().into())
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .get(query)
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
+        // store.get().await returns Result<Option<JsValue>, Error>
         let result = result
             .await
-            .into_result()
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
-        if result.is_null() || result.is_undefined() {
-            return Ok(None);
-        }
+        // Properly handle the Option<JsValue>
+        let result = match result {
+            Some(val) => val,
+            None => return Ok(None),
+        };
 
-        // Extract the Uint8Array from the stored object
         let data_val = js_sys::Reflect::get(&result, &"data".into())
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
-        let uint8_array = js_sys::Uint8Array::from(&data_val);
+        let uint8_array = js_sys::Uint8Array::new(&data_val);
         let blob = web_sys::Blob::new_with_u8_array_sequence(&js_sys::Array::of1(&uint8_array))
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
         let uri = web_sys::Url::create_object_url_with_blob(&blob)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
         Ok(Some(uri))
     }
@@ -190,20 +193,18 @@ impl ImageProvider for WebImageProvider {
         let db = self.get_db().await?;
         let tx = db
             .transaction(&[&self.store_name], idb::TransactionMode::ReadWrite)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
-
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         let store = tx
             .object_store(&self.store_name)
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
+        let query: wasm_bindgen::JsValue = id.to_string().into();
         store
-            .delete(&id.to_string().into())
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
+            .delete(query)
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
         tx.await
-            .into_result()
-            .map_err(|e| StorageError::WebStorage(e.to_string()))?;
-
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         Ok(())
     }
 }

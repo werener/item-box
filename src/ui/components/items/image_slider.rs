@@ -58,15 +58,23 @@ impl ImageSliderState {
 /// ImageSlider is a component that renders images and allows to swipe thorough them.
 #[component]
 pub fn ImageSlider(image_ids: Vec<Uuid>) -> Element {
-    let image_provider: Arc<dyn ImageProvider> = use_context();
+    let image_provider: Signal<Option<Arc<dyn ImageProvider>>> = use_context();
     let mut images = use_signal(|| Vec::<String>::new());
 
     // Resolve image IDs to URIs
     use_effect(move || {
-        let provider = image_provider.clone();
+        let provider = image_provider.read().clone();
         let ids = image_ids.clone();
 
         spawn(async move {
+            if provider.is_none() {
+                images.set(vec![
+                    asset!("/assets/images/tool-placeholder.png").to_string()
+                ]);
+                return;
+            }
+
+            let provider = provider.unwrap();
             for id in ids {
                 if let Ok(Some(uri)) = provider.get_image_uri(id).await {
                     images.write().push(uri);
@@ -74,7 +82,9 @@ pub fn ImageSlider(image_ids: Vec<Uuid>) -> Element {
             }
 
             if images.read().is_empty() {
-                images.write().push(asset!("/assets/images/tool-placeholder.png").to_string());
+                images.set(vec![
+                    asset!("/assets/images/tool-placeholder.png").to_string()
+                ])
             }
         });
     });
