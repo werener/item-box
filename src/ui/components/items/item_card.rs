@@ -13,7 +13,7 @@ pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
             flex flex-col",
 
             div { class: "h-[60%]",
-                ImageSlider { images: item.clone().images }
+                ImageSlider { image_ids: item.clone().images }
             }
 
             div { class: "h-[30%] flex flex-col",

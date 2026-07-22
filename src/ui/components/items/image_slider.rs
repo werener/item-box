@@ -57,34 +57,30 @@ impl ImageSliderState {
 
 /// ImageSlider is a component that renders images and allows to swipe thorough them.
 #[component]
-pub fn ImageSlider(images: Vec<Uuid>) -> Element {
+pub fn ImageSlider(image_ids: Vec<Uuid>) -> Element {
     let image_provider: Arc<dyn ImageProvider> = use_context();
-    let image_uris = use_signal(|| Vec::<String>::new());
+    let mut images = use_signal(|| Vec::<String>::new());
 
-    // Resolve image IDs to URIs asynchronously
+    // Resolve image IDs to URIs
     use_effect(move || {
         let provider = image_provider.clone();
-        let ids = images.clone();
-        let mut uris_signal = image_uris;
+        let ids = image_ids.clone();
 
         spawn(async move {
-            let mut uris = Vec::new();
             for id in ids {
                 if let Ok(Some(uri)) = provider.get_image_uri(id).await {
-                    uris.push(uri);
+                    images.write().push(uri);
                 }
             }
-            // Fallback to placeholder if no images resolved
-            if uris.is_empty() {
-                uris.push(asset!("/assets/images/tool-placeholder.png").to_string());
+
+            if images.read().is_empty() {
+                images.write().push(asset!("/assets/images/tool-placeholder.png").to_string());
             }
-            uris_signal.set(uris);
         });
     });
 
-    let images = image_uris.read().clone();
     let images_len = images.len();
-    let state = ImageSliderState::new(images);
+    let state = ImageSliderState::new(images.read().clone());
 
     rsx! {
         div { class: "w-full h-full flex flex-col select-none",
