@@ -16,43 +16,26 @@ struct Item {
     price: f64,
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
+    images: Vec<Uuid>,
 }
 
 impl Default for Item {
     fn default() -> Self {
         Self {
             id: Uuid::new_v4(),
-            location: None,
-            description: None,
+            location: Option::default(),
+            description: Option::default(),
             name: String::default(),
-            price: 0.0,
-            folder: None,
-            tags: vec![],
+            price: f64::default(),
+            folder: Option::default(),
+            tags: Vec::default(),
+            images: Vec::default()
         }
     }
 }
 
 #[fully_pub]
 impl Item {
-    fn new(
-        name: String,
-        location: Option<String>,
-        description: Option<String>,
-        price: f64,
-        folder: Option<Uuid>,
-        tags: Vec<Uuid>,
-    ) -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            location,
-            description,
-            name,
-            price,
-            folder,
-            tags,
-        }
-    }
-
     fn is_valid(&self) -> Result<(), Vec<ItemError>> {
         let mut errors: Vec<ItemError> = Vec::new();
 

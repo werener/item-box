@@ -11,6 +11,7 @@ pub struct ItemBuilder {
     price: f64,
     folder: Option<Uuid>,
     tags: Vec<Uuid>,
+    images: Vec<Uuid>,
 }
 
 #[fully_pub::fully_pub]
@@ -57,6 +58,11 @@ impl ItemBuilder {
         self
     }
 
+    fn images(mut self, images: Vec<Uuid>) -> Self {
+        self.images = images;
+        self
+    }
+
     /// Builds the resulting Item struct.
     fn build(self) -> Item {
         Item {
@@ -67,6 +73,7 @@ impl ItemBuilder {
             price: self.price,
             folder: self.folder,
             tags: self.tags,
+            images: self.images,
         }
     }
 }
