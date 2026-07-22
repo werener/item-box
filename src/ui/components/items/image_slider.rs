@@ -1,5 +1,8 @@
 // src/ui/components/items/image_slider.rs
+use crate::core::image::ImageProvider;
 use dioxus::prelude::*;
+use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Clone, Copy, PartialEq)]
 struct ImageSliderState {
@@ -54,9 +57,34 @@ impl ImageSliderState {
 
 /// ImageSlider is a component that renders images and allows to swipe thorough them.
 #[component]
-pub fn ImageSlider(images: Vec<String>) -> Element {
+pub fn ImageSlider(images: Vec<Uuid>) -> Element {
+    let image_provider: Arc<dyn ImageProvider> = use_context();
+    let image_uris = use_signal(|| Vec::<String>::new());
+
+    // Resolve image IDs to URIs asynchronously
+    use_effect(move || {
+        let provider = image_provider.clone();
+        let ids = images.clone();
+        let mut uris_signal = image_uris;
+
+        spawn(async move {
+            let mut uris = Vec::new();
+            for id in ids {
+                if let Ok(Some(uri)) = provider.get_image_uri(id).await {
+                    uris.push(uri);
+                }
+            }
+            // Fallback to placeholder if no images resolved
+            if uris.is_empty() {
+                uris.push(asset!("/assets/images/tool-placeholder.png").to_string());
+            }
+            uris_signal.set(uris);
+        });
+    });
+
+    let images = image_uris.read().clone();
     let images_len = images.len();
-    let state = ImageSliderState::new(images.clone());
+    let state = ImageSliderState::new(images);
 
     rsx! {
         div { class: "w-full h-full flex flex-col select-none",

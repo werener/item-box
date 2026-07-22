@@ -7,19 +7,13 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
-    let images = vec![
-        asset!("/assets/images/tool-placeholder-2.png").to_string(),
-        asset!("/assets/images/tool-placeholder.png").to_string(),
-        asset!("/assets/images/tool-placeholder.png").to_string(),
-    ];
-
     rsx! {
         div { class: "relative w-full aspect-[9/16] bg-surface-muted
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
             flex flex-col",
 
             div { class: "h-[60%]",
-                ImageSlider { images }
+                ImageSlider { images: item.clone().images }
             }
 
             div { class: "h-[30%] flex flex-col",

@@ -1,8 +1,7 @@
-use std::sync::Arc;
-
 // src/core/image.rs
 use crate::error::StorageError;
 use async_trait::async_trait;
+use std::sync::Arc;
 use uuid::Uuid;
 
 #[async_trait(?Send)]
@@ -34,9 +33,8 @@ impl DesktopImageProvider {
             .map(|dirs| dirs.data_dir().join("images"))
             .unwrap_or_else(|| std::path::PathBuf::from("./images"));
 
-        // Updated: Non-blocking directory creation
         tokio::fs::create_dir_all(&image_dir).await?;
-        
+
         Ok(Self { image_dir })
     }
 }
@@ -47,16 +45,16 @@ impl ImageProvider for DesktopImageProvider {
     async fn save_image(&self, data: &[u8]) -> Result<Uuid, StorageError> {
         let id = Uuid::new_v4();
         let file_path = self.image_dir.join(id.to_string());
-        
+
         // Updated: Non-blocking async write
         tokio::fs::write(&file_path, data).await?;
-        
+
         Ok(id)
     }
 
     async fn get_image_uri(&self, id: Uuid) -> Result<Option<String>, StorageError> {
         let file_path = self.image_dir.join(id.to_string());
-        
+
         // Updated: Non-blocking existence check and canonicalization
         if tokio::fs::try_exists(&file_path).await? {
             let canonical_path = tokio::fs::canonicalize(&file_path).await?;
@@ -69,7 +67,7 @@ impl ImageProvider for DesktopImageProvider {
 
     async fn delete_image(&self, id: Uuid) -> Result<(), StorageError> {
         let file_path = self.image_dir.join(id.to_string());
-        
+
         // Updated: Non-blocking existence check and removal
         if tokio::fs::try_exists(&file_path).await? {
             tokio::fs::remove_file(file_path).await?;
@@ -216,7 +214,7 @@ pub async fn create_image_provider() -> Result<Arc<dyn ImageProvider>, StorageEr
     {
         Ok(Arc::new(WebImageProvider::new()))
     }
-    
+
     #[cfg(not(target_arch = "wasm32"))]
     {
         Ok(Arc::new(DesktopImageProvider::new().await?))
