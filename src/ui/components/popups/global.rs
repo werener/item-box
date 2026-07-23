@@ -162,7 +162,7 @@ pub fn ItemEditorPopup(
                             span { class: "text-secondary text-sm", "Photo area" }
                         }
 
-                        div { class: "flex flex-col gap-2 min-w-0 sm:row-span-2",
+                        div { class: "flex flex-col gap-1 min-w-0 sm:row-span-2",
                             TextData { item, popup_errors }
                             FolderData { item, inventory }
                         }
@@ -256,7 +256,7 @@ fn TextData(item: Signal<Item>, popup_errors: ValidationErrors) -> Element {
             placeholder: "Item name",
         }
 
-        label { class: "flex flex-col gap-1 min-w-0",
+        label { class: "flex flex-col gap-2 min-w-0",
             span { class: "text-xs text-secondary", "Description" }
             textarea {
                 class: "px-2 py-1.5 text-sm bg-surface resize-none h-20",
@@ -310,6 +310,7 @@ fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
         .unwrap_or_else(|| "Choose folder".to_string());
 
     rsx! {
+        span { class: "text-xs text-secondary", "Folder" }
         div { class: "relative shrink-0",
             if selecting_folder() {
                 ChoiceOfFolder {
@@ -330,9 +331,9 @@ fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
                 r#type: "button",
                 onclick: move |_| selecting_folder.set(true),
                 class: "flex items-center gap-1 px-1",
-                class: "w-[40%] h-8 text-primary-muted text-xl font-semibold",
+                class: "w-[40%] h-8 text-primary-muted text-xl",
                 class: "border border-secondary-muted rounded",
-                class: "hover:border-accent hover:text-accent-hover transition-colors",
+                class: "hover:font-semibold hover:border-accent hover:text-accent-hover transition-colors",
 
                 title: "Choose folder",
 
