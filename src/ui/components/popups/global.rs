@@ -1,8 +1,12 @@
 use crate::{
-    core::models::Item,
+    core::{inventory::Inventory, models::Item},
     error::ItemError,
     ui::{
-        components::hooks::autofocus_by_id, components::popups::types::PopupType, state::AppState,
+        components::{
+            hooks::autofocus_by_id,
+            popups::{local::ChoiceOfFolder, types::PopupType},
+        },
+        state::AppState,
     },
 };
 use dioxus::prelude::*;
@@ -106,10 +110,15 @@ impl ValidationErrors {
 }
 
 #[component]
-pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
+pub fn ItemEditorPopup(
+    item: Item,
+    inventory: Signal<Inventory>,
+    callback: Callback<Item>,
+) -> Element {
     let mut app_state: AppState = use_context();
 
     let item = use_signal(|| item);
+
     let mut popup_errors = ValidationErrors::new();
 
     let handle_save = Callback::new(move |_: ()| match item.read().is_valid() {
@@ -153,7 +162,10 @@ pub fn ItemEditorPopup(item: Item, callback: Callback<Item>) -> Element {
                             span { class: "text-secondary text-sm", "Photo area" }
                         }
 
-                        TextData { item, popup_errors }
+                        div { class: "flex flex-col gap-2 min-w-0 sm:row-span-2",
+                            TextData { item, popup_errors }
+                            FolderData { item, inventory }
+                        }
 
                         div {
                             class: "flex items-center justify-center w-full min-h-[80px]",
@@ -201,6 +213,7 @@ fn CustomLabel(
                     {error.read().clone().unwrap_or_else(|| { "".to_string() })}
                 }
             }
+        
         }
     }
 }
@@ -235,55 +248,96 @@ fn Header() -> Element {
 #[component]
 fn TextData(item: Signal<Item>, popup_errors: ValidationErrors) -> Element {
     rsx! {
-        div { class: "flex flex-col gap-3 sm:row-span-2 min-w-0",
+        CustomLabel {
+            title: "Name",
+            value: item.read().name(),
+            oninput: move |e: Event<FormData>| item.write().name = e.value(),
+            error_signal: popup_errors.name_error,
+            placeholder: "Item name",
+        }
+
+        label { class: "flex flex-col gap-1 min-w-0",
+            span { class: "text-xs text-secondary", "Description" }
+            textarea {
+                class: "px-2 py-1.5 text-sm bg-surface resize-none h-20",
+                class: "border border-secondary-muted rounded",
+                class: "focus:border-accent focus:outline-none",
+                value: "{item.read().description()}",
+                oninput: move |e| {
+                    item.write().description = {
+                        let new_descr = e.value();
+                        if new_descr.is_empty() { None } else { Some(new_descr) }
+                    }
+                },
+                placeholder: "Optional description",
+            }
+        }
+
+        div { class: "flex gap-3",
             CustomLabel {
-                title: "Name",
-                value: item.read().name(),
-                oninput: move |e: Event<FormData>| item.write().name = e.value(),
-                error_signal: popup_errors.name_error,
-                placeholder: "Item name",
+                title: "Price",
+                value: item.read().price.clone(),
+                oninput: move |e: Event<FormData>| {
+                    item.write().price = e.value().parse::<f64>().unwrap_or(0.0);
+                },
+                error_signal: popup_errors.price_error,
+                r#type: "number",
+                step: "0.01",
+                min: "0",
             }
+            CustomLabel {
+                title: "Location",
+                value: item.read().location(),
+                oninput: move |e: Event<FormData>| {
+                    item.write().location = {
+                        let new_location = e.value();
+                        if new_location.is_empty() { None } else { Some(new_location) }
+                    }
+                },
+                placeholder: "Item location",
+            }
+        }
+    }
+}
 
-            label { class: "flex flex-col gap-1 min-w-0",
-                span { class: "text-xs text-secondary", "Description" }
-                textarea {
-                    class: "px-2 py-1.5 text-sm bg-surface resize-none h-20",
-                    class: "border border-secondary-muted rounded",
-                    class: "focus:border-accent focus:outline-none",
-                    value: "{item.read().description()}",
-                    oninput: move |e| {
-                        item.write().description = {
-                            let new_descr = e.value();
-                            if new_descr.is_empty() { None } else { Some(new_descr) }
-                        }
+#[component]
+fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
+    let mut selecting_folder = use_signal(|| false);
+    let folder_name = item
+        .read()
+        .folder
+        .and_then(|id| inventory.read().get_folder(id).map(|f| f.name.clone()))
+        .unwrap_or_else(|| "Choose folder".to_string());
+
+    rsx! {
+        div { class: "relative shrink-0",
+            if selecting_folder() {
+                ChoiceOfFolder {
+                    current_folder: item.read().folder,
+                    folders: inventory.read().folders.clone(),
+                    callback: move |new_folder| {
+                        item.write().folder = new_folder;
+                        selecting_folder.set(false)
                     },
-                    placeholder: "Optional description",
+                }
+                div {
+                    class: "fixed inset-0 z-30",
+                    onclick: move |_| selecting_folder.set(false),
+                    oncontextmenu: move |_| selecting_folder.set(false),
                 }
             }
+            button {
+                r#type: "button",
+                onclick: move |_| selecting_folder.set(true),
+                class: "flex items-center gap-1 px-1",
+                class: "w-[40%] h-8 text-primary-muted text-xl font-semibold",
+                class: "border border-secondary-muted rounded",
+                class: "hover:border-accent hover:text-accent-hover transition-colors",
 
-            div { class: "flex gap-3",
-                CustomLabel {
-                    title: "Price",
-                    value: item.read().price.clone(),
-                    oninput: move |e: Event<FormData>| {
-                        item.write().price = e.value().parse::<f64>().unwrap_or(0.0);
-                    },
-                    error_signal: popup_errors.price_error,
-                    r#type: "number",
-                    step: "0.01",
-                    min: "0",
-                }
-                CustomLabel {
-                    title: "Location",
-                    value: item.read().location(),
-                    oninput: move |e: Event<FormData>| {
-                        item.write().location = {
-                            let new_location = e.value();
-                            if new_location.is_empty() { None } else { Some(new_location) }
-                        }
-                    },
-                    placeholder: "Item location",
-                }
+                title: "Choose folder",
+
+                "🖿"
+                span { class: "text-xs truncate pt-0.5", "{folder_name}" }
             }
         }
     }

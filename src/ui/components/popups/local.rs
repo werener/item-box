@@ -14,14 +14,14 @@ const POPUP_LAYER: &str = "z-50";
 
 #[component]
 pub fn ChoiceOfFolder(
-    folder: Option<FolderId>,
+    current_folder: Option<FolderId>,
     folders: Vec<Folder>,
     callback: Callback<Option<FolderId>>,
 ) -> Element {
     const BUTTON_CLASS: &str =
         "px-2 py-1 text-xs min-h-4 text-left text-primary hover:bg-accent rounded truncate";
 
-    let mut app_state: AppState = use_context();
+    // let mut app_state: AppState = use_context();
     rsx! {
 
         div {
@@ -31,10 +31,10 @@ pub fn ChoiceOfFolder(
             onclick: move |e| e.stop_propagation(),
 
             button {
+                r#type: "button",
                 class: "{BUTTON_CLASS}",
-                class: if folder.is_none() { "hover:bg-accent-hover bg-accent font-semibold text-primary" } else { "hover:bg-accent text-primary-muted" },
+                class: if current_folder.is_none() { "hover:bg-accent-hover bg-accent font-semibold text-primary" } else { "hover:bg-accent text-primary-muted" },
                 onclick: move |_| {
-                    app_state.close_popup();
                     callback.call(None);
                 },
                 "No folder"
@@ -47,10 +47,10 @@ pub fn ChoiceOfFolder(
 
                     rsx! {
                         button {
+                            r#type: "button",
                             class: "{BUTTON_CLASS}",
-                            class: if folder == Some(folder_id) { "hover:bg-accent-hover bg-accent font-semibold text-primary" } else { "hover:bg-accent text-primary-muted" },
+                            class: if current_folder == Some(folder_id) { "hover:bg-accent-hover bg-accent font-semibold text-primary" } else { "hover:bg-accent text-primary-muted" },
                             onclick: move |_| {
-                                app_state.close_popup();
                                 callback.call(Some(folder_id));
                             },
                             "{folder_name}"

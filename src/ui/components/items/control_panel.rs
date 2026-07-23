@@ -8,7 +8,6 @@ use crate::ui::components::{
 };
 use crate::ui::state::AppState;
 
-
 const BUTTON_CLASS: &str = "w-5 h-5 text-primary-muted font-semibold
                     hover:text-accent-hover transition-colors
                     flex items-center justify-center";
@@ -22,7 +21,7 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
 
     let folder_name = folder
         .and_then(|id| (inventory()).get_folder(id).map(|f| f.name.clone()))
-        .unwrap_or("No Folder".to_string());
+        .unwrap_or_else(|| "No Folder".to_string());
 
     rsx! {
         div {
@@ -38,10 +37,11 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
                 }
                 if app_state.is_popup_open(PopupType::ItemContextMenuFolders(item_id)) {
                     ChoiceOfFolder {
-                        folder,
+                        current_folder: folder,
                         folders: inventory.read().folders.clone(),
                         callback: move |new_folder_id: Option<FolderId>| {
                             inventory.write().change_item_folder(item_id, new_folder_id);
+                            app_state.close_popup();
                         },
                     }
                 }

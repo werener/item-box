@@ -63,6 +63,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
                 rsx! {
                     ItemEditorPopup {
                         item: item.clone(),
+                        inventory,
                         callback: move |new_item: Item| {
                             let name = new_item.name();
 
@@ -84,6 +85,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             rsx! {
                 ItemEditorPopup {
                     item: dummy_item.clone(),
+                    inventory,
                     callback: move |new_item: Item| {
                         let name = new_item.name();
 
