@@ -18,7 +18,7 @@ pub enum PopupType {
     FolderUpdate(FolderId, Coords),
     FolderDelete(FolderId),
 
-    ItemAddTag(ItemId),
+    TagCreate,
 
     ItemContextMenuFolders(ItemId),
     HeaderContextMenuFolder(FolderId, Coords),

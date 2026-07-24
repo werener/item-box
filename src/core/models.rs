@@ -1,8 +1,9 @@
+use std::fmt;
+
 // src/core/models.rs
 use crate::error::ItemError::{self, InvalidName, InvalidPrice};
 use fully_pub::fully_pub;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use uuid::Uuid;
 
 /// Item represents any item with all its information attached.
@@ -127,11 +128,25 @@ struct Color {
 impl Color {
     /// Returns hex representation of the color (without leading #)
     pub fn to_hex(&self) -> String {
-        format!("{:02X}{:02X}{:02X}", self.r, self.g, self.b)
+        format!("{:02x}{:02x}{:02x}", self.r, self.g, self.b)
+    }
+    
+    /// Parses a hex string into a Color
+    pub fn from_hex(hex: &str) -> Result<Self, &'static str> {
+        let hex = hex.strip_prefix('#').unwrap_or(hex);
+        if hex.len() != 6 {
+            return Err("Invalid hex length: expected 6 characters");
+        }
+
+        let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| "Invalid red component")?;
+        let g = u8::from_str_radix(&hex[2..4], 16).map_err(|_| "Invalid green component")?;
+        let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| "Invalid blue component")?;
+
+        Ok(Self { r, g, b })
     }
 }
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:02X}{:02X}{:02X}", self.r, self.g, self.b)
+        write!(f, "{:02x}{:02x}{:02x}", self.r, self.g, self.b)
     }
 }

@@ -61,6 +61,12 @@ impl Inventory {
         id
     }
 
+    fn add_tag_struct(&mut self, tag: Tag) -> Uuid {
+        let id = tag.id;
+        self.tags.push(tag);
+        id
+    }
+
     // Read
     fn get_item(&self, id: Uuid) -> Option<&Item> {
         self.items.iter().find(|t| t.id == id)

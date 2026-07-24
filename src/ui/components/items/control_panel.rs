@@ -50,12 +50,6 @@ pub fn ControlPanelItem(item: Item, inventory: Signal<Inventory>) -> Element {
             div { class: "flex items-center gap-1",
                 button {
                     class: "{BUTTON_CLASS}",
-                    title: "Tags",
-                    onclick: move |_| app_state.toggle_popup(PopupType::ItemAddTag(item_id)),
-                    "#"
-                }
-                button {
-                    class: "{BUTTON_CLASS}",
                     title: "Edit",
                     onclick: move |_| app_state.toggle_popup(PopupType::ItemUpdate(item_id)),
                     PencilIcon {}

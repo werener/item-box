@@ -97,7 +97,16 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
             }
         }
 
-        ItemAddTag(_) => rsx! {},
+        TagCreate => {
+            rsx! {
+                TagEditorPopup {
+                    callback: move |tag| {
+                        inventory.write().add_tag_struct(tag);
+                        notifications.send_success(format!("Created tag!"));
+                    },
+                }
+            }
+        }
 
         FolderCreate => rsx! {},
     }

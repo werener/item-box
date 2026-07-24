@@ -1,5 +1,6 @@
 // src/ui/components/control_panel.rs
 use crate::core::{inventory::Inventory, storage::Storage};
+use crate::ui::components::popups::types::PopupType::TagCreate;
 use crate::ui::components::{icons::FunnelIcon, popups::types::PopupType};
 use crate::ui::state::AppState;
 use dioxus::prelude::*;
@@ -43,7 +44,9 @@ pub fn ControlPanelInventory(inventory: Signal<Inventory>) -> Element {
                     text: "Tag",
                     title: "New Tag",
                     min_screen_size: "md",
-                    onclick: move |_| {},
+                    onclick: move |_| {
+                        app_state.toggle_popup(TagCreate);
+                    },
                 }
 
                 ControlButton {

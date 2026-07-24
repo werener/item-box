@@ -1,5 +1,8 @@
 use crate::{
-    core::{inventory::Inventory, models::Item},
+    core::{
+        inventory::Inventory,
+        models::{Color, Item, Tag},
+    },
     error::ItemError,
     ui::{
         components::{
@@ -80,34 +83,6 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
         }
     }
 }
-type ValidationError = Signal<Option<String>>;
-
-#[derive(Clone, Copy, PartialEq)]
-struct ValidationErrors {
-    name_error: ValidationError,
-    price_error: ValidationError,
-}
-
-impl ValidationErrors {
-    fn new() -> Self {
-        ValidationErrors {
-            name_error: use_signal(|| None::<String>),
-            price_error: use_signal(|| None::<String>),
-        }
-    }
-
-    /// Writes provided errors to the state.
-    fn consume_errors(&mut self, errors: Vec<ItemError>) {
-        for error in errors {
-            match error {
-                ItemError::InvalidName => {
-                    self.name_error.set(Some(error.to_string()));
-                }
-                ItemError::InvalidPrice => self.price_error.set(Some(error.to_string())),
-            }
-        }
-    }
-}
 
 #[component]
 pub fn ItemEditorPopup(
@@ -119,7 +94,7 @@ pub fn ItemEditorPopup(
 
     let item = use_signal(|| item);
 
-    let mut popup_errors = ValidationErrors::new();
+    let mut popup_errors = ItemValidationErrors::new();
 
     let handle_save = Callback::new(move |_: ()| match item.read().is_valid() {
         Ok(_) => {
@@ -152,7 +127,7 @@ pub fn ItemEditorPopup(
                         handle_save.call(());
                     },
 
-                    Header {}
+                    HeaderItemEditor {}
 
                     div { class: "grid grid-cols-1 sm:grid-cols-[1fr_1fr] gap-4 p-4",
 
@@ -174,8 +149,35 @@ pub fn ItemEditorPopup(
                         }
                     }
 
-                    Footer {}
+                    FooterItemEditor {}
                 }
+            }
+        }
+    }
+}
+
+type ItemValidationError = Signal<Option<String>>;
+#[derive(Clone, Copy, PartialEq)]
+struct ItemValidationErrors {
+    name_error: ItemValidationError,
+    price_error: ItemValidationError,
+}
+impl ItemValidationErrors {
+    fn new() -> Self {
+        ItemValidationErrors {
+            name_error: use_signal(|| None::<String>),
+            price_error: use_signal(|| None::<String>),
+        }
+    }
+
+    /// Writes provided errors to the state.
+    fn consume_errors(&mut self, errors: Vec<ItemError>) {
+        for error in errors {
+            match error {
+                ItemError::InvalidName => {
+                    self.name_error.set(Some(error.to_string()));
+                }
+                ItemError::InvalidPrice => self.price_error.set(Some(error.to_string())),
             }
         }
     }
@@ -186,7 +188,7 @@ fn CustomLabel(
     title: String,
     value: String,
     oninput: Callback<Event<FormData>>,
-    error_signal: Option<ValidationError>,
+    error_signal: Option<ItemValidationError>,
     #[props(extends = input)] attributes: Vec<Attribute>,
 ) -> Element {
     rsx! {
@@ -219,7 +221,7 @@ fn CustomLabel(
 }
 
 #[component]
-fn Header() -> Element {
+fn HeaderItemEditor() -> Element {
     let mut app_state: AppState = use_context();
 
     rsx! {
@@ -246,7 +248,7 @@ fn Header() -> Element {
 }
 
 #[component]
-fn TextData(item: Signal<Item>, popup_errors: ValidationErrors) -> Element {
+fn TextData(item: Signal<Item>, popup_errors: ItemValidationErrors) -> Element {
     rsx! {
         CustomLabel {
             title: "Name",
@@ -345,7 +347,7 @@ fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
 }
 
 #[component]
-fn Footer() -> Element {
+fn FooterItemEditor() -> Element {
     let mut app_state: AppState = use_context();
 
     rsx! {
@@ -368,6 +370,136 @@ fn Footer() -> Element {
                 class: "bg-accent text-primary",
                 class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
                 "Save"
+            }
+        }
+    }
+}
+
+type TagValidationError = Signal<Option<String>>;
+#[derive(Clone, Copy, PartialEq)]
+struct TagValidationErrors {
+    name_error: TagValidationError,
+    color_error: TagValidationError,
+}
+impl TagValidationErrors {
+    fn new() -> Self {
+        TagValidationErrors {
+            name_error: use_signal(|| None::<String>),
+            color_error: use_signal(|| None::<String>),
+        }
+    }
+}
+
+#[component]
+pub fn TagEditorPopup(callback: Callback<Tag>) -> Element {
+    let mut app_state: AppState = use_context();
+    let mut popup_errors = TagValidationErrors::new();
+
+    let mut name = use_signal(|| String::new());
+    let mut color = use_signal(|| Color::default());
+
+    autofocus_by_id("tag-name-input");
+
+    let mut handle_save = move |_: ()| {
+        if !name().trim().is_empty() {
+            callback.call(Tag::new(name(), color()));
+            app_state.close_popup();
+        } else {
+            popup_errors
+                .name_error
+                .set(Some("Name has to be non-empty".to_string()));
+        }
+    };
+
+    rsx! {
+        div {
+            class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+            onkeydown: move |e| {
+                if e.key() == Key::Escape {
+                    app_state.close_popup();
+                }
+            },
+            div {
+                class: "flex flex-col bg-surface rounded-lg shadow-xl overflow-hidden w-[90%] max-w-sm p-4 gap-4",
+                onclick: move |e| e.stop_propagation(),
+
+                // Header
+                div { class: "flex items-center justify-between",
+                    h2 { class: "text-lg font-semibold text-primary", "Create Tag" }
+                    button {
+                        r#type: "button",
+                        class: "p-1 text-secondary hover:text-accent transition-colors",
+                        onclick: move |_| app_state.close_popup(),
+                        "×"
+                    }
+                }
+
+                // Form
+                form {
+                    class: "flex flex-col gap-4",
+                    onsubmit: move |e| {
+                        e.prevent_default();
+                        handle_save(());
+                    },
+
+                    // Name Input
+                    label { class: "flex flex-col gap-1",
+                        span { class: "text-xs text-secondary", "Tag Name" }
+                        input {
+                            id: "tag-name-input",
+                            class: "px-2 py-1.5 text-sm bg-surface border border-secondary-muted rounded focus:border-accent focus:outline-none",
+                            value: "{name}",
+                            oninput: move |e| {
+                                name.set(e.value());
+                                popup_errors.name_error.set(None)
+                            },
+                            placeholder: "Enter tag name",
+                        }
+                        if let Some(msg) = (popup_errors.name_error)() {
+                            span { class: "text-xs text-error-primary", "{msg}" }
+                        }
+                    }
+
+                    // Color Picker
+                    label { class: "flex flex-col gap-1",
+                        span { class: "text-xs text-secondary", "Tag Color" }
+                        div { class: "flex items-center gap-3",
+                            input {
+                                r#type: "color",
+                                class: "w-12 h-10 p-0.5 border border-secondary-muted rounded cursor-pointer bg-transparent",
+                                value: "#{color().to_hex()}",
+                                oninput: move |e| {
+                                    match Color::from_hex(&e.value()) {
+                                        Ok(c) => {
+                                            color.set(c);
+                                            popup_errors.color_error.set(None);
+                                        }
+                                        Err(err) => popup_errors.color_error.set(Some(err.to_string())),
+                                    }
+                                },
+                            }
+                            span { class: "text-sm text-primary-muted font-mono", "{color}" }
+                        }
+                        if let Some(msg) = (popup_errors.color_error)() {
+                            span { class: "text-xs text-error-primary", "{msg}" }
+                        }
+                    }
+
+                    // Footer Buttons
+                    div { class: "flex justify-end gap-2 mt-2",
+                        button {
+                            r#type: "button",
+                            class: "px-3 py-1.5 rounded-md text-sm bg-surface-accented-muted text-primary hover:bg-accent-hover hover:text-primary-hover transition-colors",
+                            onclick: move |_| app_state.close_popup(),
+                            "Cancel"
+                        }
+                        button {
+                            r#type: "submit",
+                            class: "px-3 py-1.5 rounded-md text-sm bg-accent text-primary hover:bg-accent-hover hover:text-primary-hover transition-colors",
+                            "Create"
+                        }
+                    }
+                }
             }
         }
     }
