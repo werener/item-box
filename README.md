@@ -9,6 +9,9 @@ items:
 popups:
 1) divide local and global popups to allow reusing local ones inside the globals
 
+tags:
+1) Remove unnecessary context. Do the interactivity, similarly to item editing.
+
 core:
 1) Add a custom type for price to indicate currency
 2) Add "Actions" to represent recent actions, performed on the inventory
