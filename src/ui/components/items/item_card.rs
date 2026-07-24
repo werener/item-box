@@ -43,7 +43,7 @@ fn Tags(item: Item, inventory: Signal<Inventory>) -> Element {
                     div {
                         class: "text-[12px] px-1 py-0.25 group-hover:pr-5",
                         class: "rounded-xl truncate whitespace-nowrap block",
-                        style: "background-color: #{tag.color.to_hex()};",
+                        style: "background-color: #{tag.bg_color}; color: #{tag.fg_color}",
                         "{tag.name}"
                         button {
                             class: "absolute right-1 top-1/2 -translate-y-1/2",

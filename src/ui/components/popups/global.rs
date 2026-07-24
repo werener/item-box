@@ -7,12 +7,14 @@ use crate::{
     ui::{
         components::{
             hooks::autofocus_by_id,
+            icons::TrashIcon,
             popups::{local::ChoiceOfFolder, types::PopupType},
         },
         state::AppState,
     },
 };
 use dioxus::prelude::*;
+use uuid::Uuid;
 
 #[component]
 pub fn Backdrop() -> Element {
@@ -165,8 +167,8 @@ struct ItemValidationErrors {
 impl ItemValidationErrors {
     fn new() -> Self {
         ItemValidationErrors {
-            name_error: use_signal(|| None::<String>),
-            price_error: use_signal(|| None::<String>),
+            name_error: use_signal(|| None),
+            price_error: use_signal(|| None),
         }
     }
 
@@ -379,36 +381,65 @@ type TagValidationError = Signal<Option<String>>;
 #[derive(Clone, Copy, PartialEq)]
 struct TagValidationErrors {
     name_error: TagValidationError,
-    color_error: TagValidationError,
+    bg_color_error: TagValidationError,
+    fg_color_error: TagValidationError,
 }
 impl TagValidationErrors {
     fn new() -> Self {
         TagValidationErrors {
-            name_error: use_signal(|| None::<String>),
-            color_error: use_signal(|| None::<String>),
+            name_error: use_signal(|| None),
+            bg_color_error: use_signal(|| None),
+            fg_color_error: use_signal(|| None),
         }
     }
 }
 
 #[component]
-pub fn TagEditorPopup(callback: Callback<Tag>) -> Element {
+pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> Element {
     let mut app_state: AppState = use_context();
     let mut popup_errors = TagValidationErrors::new();
 
     let mut name = use_signal(|| String::new());
-    let mut color = use_signal(|| Color::default());
+    let mut bg_color = use_signal(|| Color::default_bg());
+    let mut fg_color = use_signal(|| Color::default_fg());
 
+    let mut selected_tag = use_signal(|| Option::<Tag>::None);
+
+    use_effect(move || {
+        if let Some(tag) = selected_tag() {
+            name.set(tag.name.clone());
+            bg_color.set(tag.bg_color.clone());
+            fg_color.set(tag.fg_color.clone());
+            
+            popup_errors.name_error.set(None);
+            popup_errors.bg_color_error.set(None);
+        } else {
+            name.set(String::new());
+            bg_color.set(Color::default_bg());
+            fg_color.set(Color::default_fg())
+        }
+    });
     autofocus_by_id("tag-name-input");
 
-    let mut handle_save = move |_: ()| {
-        if !name().trim().is_empty() {
-            callback.call(Tag::new(name(), color()));
-            app_state.close_popup();
-        } else {
-            popup_errors
-                .name_error
-                .set(Some("Name has to be non-empty".to_string()));
+    let mut handle_tag_save = move || {
+        if let Some(tag) = selected_tag() {
+            if !name().trim().is_empty() {
+                inventory
+                    .write()
+                    .update_tag(tag.id, Tag::new(name(), bg_color(), fg_color()));
+            } else {
+                popup_errors
+                    .name_error
+                    .set(Some("Name has to be non-empty".to_string()));
+            }
         }
+    };
+
+    let mut handle_tag_delete = move || {
+        inventory
+            .write()
+            .remove_tag(selected_tag().map_or_else(|| Uuid::default(), |t| t.id));
+        selected_tag.set(None);
     };
 
     rsx! {
@@ -425,63 +456,73 @@ pub fn TagEditorPopup(callback: Callback<Tag>) -> Element {
 
                 // Header
                 div { class: "flex items-center justify-between",
-                    h2 { class: "text-lg font-semibold text-primary", "Create Tag" }
+                    h2 { class: "text-lg font-semibold text-primary", "Manage Tags" }
                     button {
                         r#type: "button",
-                        class: "p-1 text-secondary hover:text-accent transition-colors",
+                        class: "p-1 text-lg text-secondary hover:text-accent-hover transition-colors",
                         onclick: move |_| app_state.close_popup(),
                         "×"
                     }
                 }
 
+                // Tag list
+                TagList { selected_tag, inventory }
+
                 // Form
                 form {
                     class: "flex flex-col gap-4",
+                    class: if selected_tag().is_none() { "pointer-events-none opacity-40" },
                     onsubmit: move |e| {
                         e.prevent_default();
-                        handle_save(());
+                        // TODO: auto-save to storage;
                     },
 
                     // Name Input
-                    label { class: "flex flex-col gap-1",
-                        span { class: "text-xs text-secondary", "Tag Name" }
-                        input {
-                            id: "tag-name-input",
-                            class: "px-2 py-1.5 text-sm bg-surface border border-secondary-muted rounded focus:border-accent focus:outline-none",
-                            value: "{name}",
-                            oninput: move |e| {
-                                name.set(e.value());
-                                popup_errors.name_error.set(None)
-                            },
-                            placeholder: "Enter tag name",
-                        }
-                        if let Some(msg) = (popup_errors.name_error)() {
-                            span { class: "text-xs text-error-primary", "{msg}" }
-                        }
+                    CustomLabel {
+                        title: "Name",
+                        value: name,
+                        oninput: move |e: Event<FormData>| {
+                            name.set(e.value());
+                            popup_errors.name_error.set(None)
+                        },
+                        error_signal: popup_errors.name_error,
+                        placeholder: "Tag name",
                     }
 
                     // Color Picker
-                    label { class: "flex flex-col gap-1",
-                        span { class: "text-xs text-secondary", "Tag Color" }
-                        div { class: "flex items-center gap-3",
-                            input {
-                                r#type: "color",
-                                class: "w-12 h-10 p-0.5 border border-secondary-muted rounded cursor-pointer bg-transparent",
-                                value: "#{color().to_hex()}",
-                                oninput: move |e| {
-                                    match Color::from_hex(&e.value()) {
-                                        Ok(c) => {
-                                            color.set(c);
-                                            popup_errors.color_error.set(None);
-                                        }
-                                        Err(err) => popup_errors.color_error.set(Some(err.to_string())),
-                                    }
-                                },
+                    div { class: "flex flex-row justify-between",
+                        div {
+                            class: "flex gap-8 px-2 py-1",
+                            class: "rounded border border-secondary-muted",
+                            ColorPicker {
+                                title: "Background color",
+                                color: bg_color,
+                                error_signal: popup_errors.bg_color_error,
                             }
-                            span { class: "text-sm text-primary-muted font-mono", "{color}" }
+                            ColorPicker {
+                                title: "Text color",
+                                color: fg_color,
+                                error_signal: popup_errors.fg_color_error,
+                            }
                         }
-                        if let Some(msg) = (popup_errors.color_error)() {
-                            span { class: "text-xs text-error-primary", "{msg}" }
+                        div {
+                            class: "flex flex-col justify-center select-none items-end p-0.5",
+                            class: "rounded border border-secondary-muted",
+                            button {
+                                r#type: "button",
+                                class: "w-8 h-8 flex items-center justify-center rounded-lg",
+                                class: "text-green-500 hover:bg-green-500/10 transition-colors text-xl",
+                                onclick: move |_| handle_tag_save(),
+                                "✓"
+                            }
+
+                            button {
+                                r#type: "button",
+                                class: "w-8 h-8 flex items-center justify-center rounded-lg",
+                                class: "text-error-primary hover:bg-error-primary/10 transition-colors",
+                                onclick: move |_| { handle_tag_delete() },
+                                TrashIcon { class: "w-4 h-4" }
+                            }
                         }
                     }
 
@@ -489,17 +530,92 @@ pub fn TagEditorPopup(callback: Callback<Tag>) -> Element {
                     div { class: "flex justify-end gap-2 mt-2",
                         button {
                             r#type: "button",
-                            class: "px-3 py-1.5 rounded-md text-sm bg-surface-accented-muted text-primary hover:bg-accent-hover hover:text-primary-hover transition-colors",
+                            class: "px-3 py-1.5 rounded-md text-sm bg-surface-accented-muted text-primary",
+                            class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
                             onclick: move |_| app_state.close_popup(),
                             "Cancel"
                         }
                         button {
                             r#type: "submit",
-                            class: "px-3 py-1.5 rounded-md text-sm bg-accent text-primary hover:bg-accent-hover hover:text-primary-hover transition-colors",
-                            "Create"
+                            class: "px-3 py-1.5 rounded-md text-sm bg-accent text-primary",
+                            class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
+                            "Save"
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn TagList(selected_tag: Signal<Option<Tag>>, inventory: Signal<Inventory>) -> Element {
+    rsx! {
+        div { class: "flex flex-col gap-2 border-b border-secondary-muted",
+            div { class: "flex justify-between items-center",
+                h3 { class: "text-sm font-semibold text-primary", "Available Tags" }
+                button {
+                    r#type: "button",
+                    class: "px-2 py-1 text-xs rounded-md bg-accent text-primary hover:bg-accent-hover transition-colors",
+                    onclick: move |_| {
+                        let mut new_tag = Tag::default();
+                        new_tag.name = "New tag".to_string();
+                        inventory.write().add_tag_struct(new_tag.clone());
+                        selected_tag.set(Some(new_tag));
+                    },
+                    "+ Add New"
+                }
+            }
+            div { class: "flex flex-wrap gap-2 max-h-20 overflow-y-auto p-1",
+                if inventory.read().tags.is_empty() {
+                    span { class: "text-xs text-secondary-muted italic w-full text-center py-2",
+                        "No tags yet. Create one below!"
+                    }
+                } else {
+                    for tag in inventory.read().tags.clone() {
+                        div {
+                            key: "{tag.id}",
+                            class: "group relative flex items-center gap-1 px-2 py-1",
+                            class: "rounded-xl text-xs font-medium cursor-pointer transition-all ",
+                            class: "hover:ring-2 hover:ring-accent",
+
+                            class: if Some(tag.id) == selected_tag().map(|t| t.id) { "ring-2 ring-accent-hover" },
+
+                            style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
+                            onclick: move |_| { selected_tag.set(Some(tag.clone())) },
+                            span { class: "truncate max-w-[15ch] drop-shadow-sm", "{tag.name}" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn ColorPicker(title: String, color: Signal<Color>, error_signal: TagValidationError) -> Element {
+    rsx! {
+        label { class: "flex flex-col gap-1",
+            span { class: "text-xs text-secondary", "{title}" }
+            div { class: "flex items-center  gap-2",
+                input {
+                    r#type: "color",
+                    class: "w-12 h-10 p-0.5 border border-secondary-muted rounded cursor-pointer bg-transparent",
+                    value: "#{color()}",
+                    oninput: move |e| {
+                        match Color::from_hex(&e.value()) {
+                            Ok(c) => {
+                                color.set(c);
+                                error_signal.set(None);
+                            }
+                            Err(err) => error_signal.set(Some(err.to_string())),
+                        }
+                    },
+                }
+                span { class: "text-sm text-primary-muted font-mono", "{color}" }
+            }
+            if let Some(msg) = error_signal() {
+                span { class: "text-xs text-error-primary", "{msg}" }
             }
         }
     }

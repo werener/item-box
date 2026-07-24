@@ -67,7 +67,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
                         callback: move |new_item: Item| {
                             let name = new_item.name();
 
-                            inventory.write().change_item(id, new_item);
+                            inventory.write().update_item(id, new_item);
                             notifications
                             .send_success(format!("Edited \"{name}\"!"));
                         },
@@ -100,6 +100,7 @@ pub fn PopupWindow(inventory: Signal<Inventory>) -> Element {
         TagCreate => {
             rsx! {
                 TagEditorPopup {
+                    inventory,
                     callback: move |tag| {
                         inventory.write().add_tag_struct(tag);
                         notifications.send_success(format!("Created tag!"));
