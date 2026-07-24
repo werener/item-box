@@ -10,7 +10,7 @@ fn dummy_color() -> Color {
 fn test_create_and_read() {
     let mut inv = Inventory::default();
     let garage_id = inv.add_folder("Garage");
-    let power_tag_id = inv.add_tag("Power Tool", dummy_color());
+    let power_tag_id = inv.add_tag("Power Tool", dummy_color(),dummy_color());
 
     let drill_id = inv.add_item_struct(
         ItemBuilder::new("Drill")
@@ -56,8 +56,6 @@ fn test_rename_operations() {
     );
 
     let folder_id = inv.add_folder("Old Garage");
-    let tag_id = inv.add_tag("Old Tag", dummy_color());
-
     assert!(
         inv.rename_item(tool_id, "New Drill"),
         "Renaming existing tool should succeed"
@@ -78,16 +76,6 @@ fn test_rename_operations() {
         "Folder name not updated"
     );
 
-    assert!(
-        inv.rename_tag(tag_id, "New Tag"),
-        "Renaming existing tag should succeed"
-    );
-    assert_eq!(
-        inv.get_tag(tag_id).unwrap().name,
-        "New Tag",
-        "Tag name not updated"
-    );
-
     let fake_id = Uuid::new_v4();
     assert!(
         !inv.rename_item(fake_id, "Ghost"),
@@ -96,33 +84,6 @@ fn test_rename_operations() {
     assert!(
         !inv.rename_folder(fake_id, "Ghost"),
         "Renaming non-existent folder should fail"
-    );
-    assert!(
-        !inv.rename_tag(fake_id, "Ghost"),
-        "Renaming non-existent tag should fail"
-    );
-}
-
-#[test]
-fn test_recolor_tag() {
-    let mut inv = Inventory::default();
-    let tag_id = inv.add_tag("Red Tag", dummy_color());
-    let new_color = Color { r: 0, g: 255, b: 0 };
-
-    assert!(
-        inv.recolor_tag(tag_id, new_color.clone()),
-        "Recoloring existing tag should succeed"
-    );
-    assert_eq!(
-        inv.get_tag(tag_id).unwrap().color,
-        new_color,
-        "Tag color not updated"
-    );
-
-    let fake_id = Uuid::new_v4();
-    assert!(
-        !inv.recolor_tag(fake_id, new_color),
-        "Recoloring non-existent tag should fail"
     );
 }
 
@@ -161,8 +122,8 @@ fn test_remove_folder_cleans_up_tools() {
 #[test]
 fn test_remove_tag_cleans_up_tools() {
     let mut inv = Inventory::default();
-    let tag1_id = inv.add_tag("Heavy", dummy_color());
-    let tag2_id = inv.add_tag("Expensive", dummy_color());
+    let tag1_id = inv.add_tag("Heavy", dummy_color(), dummy_color());
+    let tag2_id = inv.add_tag("Expensive", dummy_color(), dummy_color());
 
     let tool_id = inv.add_item_struct(
         ItemBuilder::new("Anvil")

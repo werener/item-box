@@ -35,7 +35,11 @@ fn test_save_and_load_roundtrip() {
     let mut inventory = Inventory::default();
 
     let folder_id = inventory.add_folder("Garage");
-    let tag_id = inventory.add_tag("Power Tool", Color { r: 255, g: 0, b: 0 });
+    let tag_id = inventory.add_tag(
+        "Power Tool",
+        Color { r: 255, g: 0, b: 0 },
+        Color { r: 0, g: 255, b: 0 },
+    );
 
     inventory.add_item_struct(
         ItemBuilder::new("Drill")
