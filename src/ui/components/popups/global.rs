@@ -394,39 +394,59 @@ impl TagValidationErrors {
     }
 }
 
+#[derive(Clone, PartialEq, Copy)]
+struct TagContext {
+    name: Signal<String>,
+    bg_color: Signal<Color>,
+    fg_color: Signal<Color>,
+    selected_tag: Signal<Option<Tag>>,
+}
+impl TagContext {
+    fn new() -> Self {
+        Self {
+            name: use_signal(|| String::new()),
+            bg_color: use_signal(|| Color::default_bg()),
+            fg_color: use_signal(|| Color::default_fg()),
+            selected_tag: use_signal(|| Option::<Tag>::None),
+        }
+    }
+
+    fn selected_tag(self) -> Option<Tag> {
+        (self.selected_tag)()
+    }
+}
+
 #[component]
 pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> Element {
     let mut app_state: AppState = use_context();
     let mut popup_errors = TagValidationErrors::new();
 
-    let mut name = use_signal(|| String::new());
-    let mut bg_color = use_signal(|| Color::default_bg());
-    let mut fg_color = use_signal(|| Color::default_fg());
-
-    let mut selected_tag = use_signal(|| Option::<Tag>::None);
+    let mut context = TagContext::new();
 
     use_effect(move || {
-        if let Some(tag) = selected_tag() {
-            name.set(tag.name.clone());
-            bg_color.set(tag.bg_color.clone());
-            fg_color.set(tag.fg_color.clone());
-            
+        if let Some(tag) = context.selected_tag() {
+            context.name.set(tag.name.clone());
+            context.bg_color.set(tag.bg_color.clone());
+            context.fg_color.set(tag.fg_color.clone());
+
             popup_errors.name_error.set(None);
             popup_errors.bg_color_error.set(None);
         } else {
-            name.set(String::new());
-            bg_color.set(Color::default_bg());
-            fg_color.set(Color::default_fg())
+            context.name.set(String::new());
+            context.bg_color.set(Color::default_bg());
+            context.fg_color.set(Color::default_fg())
         }
     });
     autofocus_by_id("tag-name-input");
 
     let mut handle_tag_save = move || {
-        if let Some(tag) = selected_tag() {
-            if !name().trim().is_empty() {
-                inventory
-                    .write()
-                    .update_tag(tag.id, Tag::new(name(), bg_color(), fg_color()));
+        if let Some(tag) = context.selected_tag() {
+            if !(context.name)().trim().is_empty() {
+                inventory.write().update_tag(
+                    tag.id,
+                    Tag::new((context.name)(), (context.bg_color)(), (context.fg_color)()),
+                );
+                context.selected_tag.set(None);
             } else {
                 popup_errors
                     .name_error
@@ -436,10 +456,12 @@ pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> 
     };
 
     let mut handle_tag_delete = move || {
-        inventory
-            .write()
-            .remove_tag(selected_tag().map_or_else(|| Uuid::default(), |t| t.id));
-        selected_tag.set(None);
+        inventory.write().remove_tag(
+            context
+                .selected_tag()
+                .map_or_else(|| Uuid::default(), |t| t.id),
+        );
+        context.selected_tag.set(None);
     };
 
     rsx! {
@@ -466,12 +488,12 @@ pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> 
                 }
 
                 // Tag list
-                TagList { selected_tag, inventory }
+                TagList { context, inventory }
 
                 // Form
                 form {
                     class: "flex flex-col gap-4",
-                    class: if selected_tag().is_none() { "pointer-events-none opacity-40" },
+                    class: if context.selected_tag().is_none() { "pointer-events-none opacity-40" },
                     onsubmit: move |e| {
                         e.prevent_default();
                         // TODO: auto-save to storage;
@@ -480,9 +502,9 @@ pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> 
                     // Name Input
                     CustomLabel {
                         title: "Name",
-                        value: name,
+                        value: context.name,
                         oninput: move |e: Event<FormData>| {
-                            name.set(e.value());
+                            context.name.set(e.value());
                             popup_errors.name_error.set(None)
                         },
                         error_signal: popup_errors.name_error,
@@ -496,12 +518,12 @@ pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> 
                             class: "rounded border border-secondary-muted",
                             ColorPicker {
                                 title: "Background color",
-                                color: bg_color,
+                                color: context.bg_color,
                                 error_signal: popup_errors.bg_color_error,
                             }
                             ColorPicker {
                                 title: "Text color",
-                                color: fg_color,
+                                color: context.fg_color,
                                 error_signal: popup_errors.fg_color_error,
                             }
                         }
@@ -549,7 +571,7 @@ pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> 
 }
 
 #[component]
-fn TagList(selected_tag: Signal<Option<Tag>>, inventory: Signal<Inventory>) -> Element {
+fn TagList(context: TagContext, inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "flex flex-col gap-2 border-b border-secondary-muted",
             div { class: "flex justify-between items-center",
@@ -561,7 +583,7 @@ fn TagList(selected_tag: Signal<Option<Tag>>, inventory: Signal<Inventory>) -> E
                         let mut new_tag = Tag::default();
                         new_tag.name = "New tag".to_string();
                         inventory.write().add_tag_struct(new_tag.clone());
-                        selected_tag.set(Some(new_tag));
+                        context.selected_tag.set(Some(new_tag));
                     },
                     "+ Add New"
                 }
@@ -573,17 +595,32 @@ fn TagList(selected_tag: Signal<Option<Tag>>, inventory: Signal<Inventory>) -> E
                     }
                 } else {
                     for tag in inventory.read().tags.clone() {
-                        div {
-                            key: "{tag.id}",
-                            class: "group relative flex items-center gap-1 px-2 py-1",
-                            class: "rounded-xl text-xs font-medium cursor-pointer transition-all ",
-                            class: "hover:ring-2 hover:ring-accent",
+                        if Some(tag.id) == context.selected_tag().map(|t| t.id) {
+                            div {
+                                key: "{tag.id}",
+                                class: "group relative flex items-center gap-1 px-2 py-1",
+                                class: "rounded-xl text-xs font-medium cursor-pointer ",
+                                class: "ring-2 ring-accent hover:ring-accent-hover",
 
-                            class: if Some(tag.id) == selected_tag().map(|t| t.id) { "ring-2 ring-accent-hover" },
+                                style: "background-color: #{context.bg_color}; color: #{context.fg_color};",
+                                onclick: move |_| { context.selected_tag.set(None) },
+                                span { class: "truncate max-w-[15ch] drop-shadow-sm",
+                                    "{context.name}"
+                                }
+                            }
+                        } else {
+                            div {
+                                key: "{tag.id}",
+                                class: "group relative flex items-center gap-1 px-2 py-1",
+                                class: "rounded-xl text-xs font-medium cursor-pointer transition-all ",
+                                class: "hover:ring-2 hover:ring-accent",
 
-                            style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
-                            onclick: move |_| { selected_tag.set(Some(tag.clone())) },
-                            span { class: "truncate max-w-[15ch] drop-shadow-sm", "{tag.name}" }
+                                style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
+                                onclick: move |_| { context.selected_tag.set(Some(tag.clone())) },
+                                span { class: "truncate max-w-[15ch] drop-shadow-sm",
+                                    "{tag.name}"
+                                }
+                            }
                         }
                     }
                 }
