@@ -30,7 +30,7 @@ impl Default for Item {
             price: f64::default(),
             folder: Option::default(),
             tags: Vec::default(),
-            images: Vec::default()
+            images: Vec::default(),
         }
     }
 }
@@ -100,25 +100,39 @@ impl Folder {
 ///
 /// Multiple items can have the same tag.
 /// One item can have multiple tags.
-#[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
 struct Tag {
     id: Uuid,
     name: String,
-    color: Color,
+    bg_color: Color,
+    fg_color: Color,
 }
+
+impl Default for Tag {
+    fn default() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::default(),
+            bg_color: Color::default_bg(),
+            fg_color: Color::default_fg(),
+        }
+    }
+}
+
 impl Tag {
-    pub fn new(name: String, color: Color) -> Self {
+    pub fn new(name: String, bg_color: Color, fg_color: Color) -> Self {
         Self {
             id: Uuid::new_v4(),
             name,
-            color,
+            bg_color,
+            fg_color,
         }
     }
 }
 
 /// Represents a color in RGB.
-#[derive(Default, Clone, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 #[fully_pub]
 struct Color {
     r: u8,
@@ -130,7 +144,7 @@ impl Color {
     pub fn to_hex(&self) -> String {
         format!("{:02x}{:02x}{:02x}", self.r, self.g, self.b)
     }
-    
+
     /// Parses a hex string into a Color
     pub fn from_hex(hex: &str) -> Result<Self, &'static str> {
         let hex = hex.strip_prefix('#').unwrap_or(hex);
@@ -143,6 +157,14 @@ impl Color {
         let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| "Invalid blue component")?;
 
         Ok(Self { r, g, b })
+    }
+
+    pub fn default_bg() -> Self {
+        Self::from_hex("#000000").expect("Color::default_bg()")
+    }
+
+    pub fn default_fg() -> Self {
+        Self::from_hex("#ffffff").expect("Color::default_fg()")
     }
 }
 impl fmt::Display for Color {

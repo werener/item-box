@@ -54,8 +54,8 @@ impl Inventory {
         id
     }
 
-    fn add_tag<S: Into<String>>(&mut self, name: S, color: Color) -> Uuid {
-        let tag = Tag::new(name.into(), color);
+    fn add_tag<S: Into<String>>(&mut self, name: S, bg_color: Color, fg_color: Color) -> Uuid {
+        let tag = Tag::new(name.into(), bg_color, fg_color);
         let id = tag.id;
         self.tags.push(tag);
         id
@@ -94,9 +94,10 @@ impl Inventory {
 
     // Update
     // Items
-    fn change_item(&mut self, item_id: Uuid, new_item: Item) -> bool {
-        if let Some(item) = self.get_item_mut(item_id) {
+    fn update_item(&mut self, old_item_id: Uuid, new_item: Item) -> bool {
+        if let Some(item) = self.get_item_mut(old_item_id) {
             new_item.clone_into(item);
+            item.id = old_item_id;
             true
         } else {
             false
@@ -152,18 +153,10 @@ impl Inventory {
     }
 
     // Tags
-    fn rename_tag<S: Into<String>>(&mut self, tag_id: Uuid, new_name: S) -> bool {
-        if let Some(tag) = self.get_tag_mut(tag_id) {
-            tag.name = new_name.into();
-            true
-        } else {
-            false
-        }
-    }
-
-    fn recolor_tag(&mut self, tag_id: Uuid, new_color: Color) -> bool {
-        if let Some(tag) = self.get_tag_mut(tag_id) {
-            tag.color = new_color;
+    fn update_tag(&mut self, old_tag_id: Uuid, new_tag: Tag) -> bool {
+        if let Some(tag) = self.get_tag_mut(old_tag_id) {
+            new_tag.clone_into(tag);
+            tag.id = old_tag_id;
             true
         } else {
             false
