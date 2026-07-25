@@ -29,6 +29,44 @@ pub fn Backdrop() -> Element {
 }
 
 #[component]
+fn CustomLabel(
+    title: String,
+    value: String,
+    oninput: Callback<Event<FormData>>,
+    error_signal: Option<ItemValidationError>,
+    #[props(extends = input)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        label { class: "flex-1 flex flex-col gap-1 min-w-0",
+            span { class: "text-xs text-secondary", "{title}" }
+
+            input {
+                id: "{title}-input",
+                class: "px-2 py-1.5 text-sm bg-surface",
+                class: "border border-secondary-muted rounded",
+                class: "focus:border-accent focus:outline-none",
+
+                value,
+                oninput: move |e: Event<FormData>| {
+                    if let Some(mut signal) = error_signal {
+                        signal.set(None);
+                    }
+                    oninput.call(e)
+                },
+                ..attributes,
+            }
+            if let Some(error) = error_signal {
+                span { class: "text-xs text-error-primary",
+                    {error.read().clone().unwrap_or_else(|| { "".to_string() })}
+                }
+            }
+        
+        }
+    }
+}
+
+/// Global popup to confirm deletion
+#[component]
 pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     let mut app_state: AppState = use_context();
     const BUTTON_CLASS: &str = "px-2 py-1 text-sm rounded-md transition-colors";
@@ -86,6 +124,7 @@ pub fn DeleteConfirmation(name: String, callback: Callback) -> Element {
     }
 }
 
+/// Global popup for editing item info
 #[component]
 pub fn ItemEditorPopup(
     item: Item,
@@ -121,18 +160,16 @@ pub fn ItemEditorPopup(
                 class: "flex flex-col bg-surface rounded-lg shadow-xl overflow-hidden",
                 class: "w-[90%] max-w-sm sm:max-w-2xl max-h-[90vh]",
                 onclick: move |e| e.stop_propagation(),
-
                 form {
                     class: "flex flex-col flex-1 overflow-y-auto",
                     onsubmit: move |e| {
                         e.prevent_default();
                         handle_save.call(());
                     },
-
                     HeaderItemEditor {}
 
+                    // Body
                     div { class: "grid grid-cols-1 sm:grid-cols-[1fr_1fr] gap-4 p-4",
-
                         div {
                             class: "flex items-center justify-center w-full aspect-video",
                             class: "bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg",
@@ -159,6 +196,7 @@ pub fn ItemEditorPopup(
 }
 
 type ItemValidationError = Signal<Option<String>>;
+
 #[derive(Clone, Copy, PartialEq)]
 struct ItemValidationErrors {
     name_error: ItemValidationError,
@@ -181,43 +219,6 @@ impl ItemValidationErrors {
                 }
                 ItemError::InvalidPrice => self.price_error.set(Some(error.to_string())),
             }
-        }
-    }
-}
-
-#[component]
-fn CustomLabel(
-    title: String,
-    value: String,
-    oninput: Callback<Event<FormData>>,
-    error_signal: Option<ItemValidationError>,
-    #[props(extends = input)] attributes: Vec<Attribute>,
-) -> Element {
-    rsx! {
-        label { class: "flex-1 flex flex-col gap-1 min-w-0",
-            span { class: "text-xs text-secondary", "{title}" }
-
-            input {
-                id: "{title}-input",
-                class: "px-2 py-1.5 text-sm bg-surface",
-                class: "border border-secondary-muted rounded",
-                class: "focus:border-accent focus:outline-none",
-
-                value,
-                oninput: move |e: Event<FormData>| {
-                    if let Some(mut signal) = error_signal {
-                        signal.set(None);
-                    }
-                    oninput.call(e)
-                },
-                ..attributes,
-            }
-            if let Some(error) = error_signal {
-                span { class: "text-xs text-error-primary",
-                    {error.read().clone().unwrap_or_else(|| { "".to_string() })}
-                }
-            }
-        
         }
     }
 }
@@ -248,7 +249,6 @@ fn HeaderItemEditor() -> Element {
         }
     }
 }
-
 #[component]
 fn TextData(item: Signal<Item>, popup_errors: ItemValidationErrors) -> Element {
     rsx! {
@@ -303,7 +303,6 @@ fn TextData(item: Signal<Item>, popup_errors: ItemValidationErrors) -> Element {
         }
     }
 }
-
 #[component]
 fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
     let mut selecting_folder = use_signal(|| false);
@@ -347,7 +346,6 @@ fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
         }
     }
 }
-
 #[component]
 fn FooterItemEditor() -> Element {
     let mut app_state: AppState = use_context();
@@ -377,7 +375,58 @@ fn FooterItemEditor() -> Element {
     }
 }
 
+/// Global popup for managing tags
+#[component]
+pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> Element {
+    let mut app_state: AppState = use_context();
+    let mut popup_errors = TagValidationErrors::new();
+
+    let mut context = TagContext::new();
+
+    use_effect(move || {
+        if let Some(tag) = context.selected_tag() {
+            context.name.set(tag.name.clone());
+            context.bg_color.set(tag.bg_color.clone());
+            context.fg_color.set(tag.fg_color.clone());
+
+            popup_errors.name_error.set(None);
+            popup_errors.bg_color_error.set(None);
+        } else {
+            context.name.set(String::new());
+            context.bg_color.set(Color::default_bg());
+            context.fg_color.set(Color::default_fg())
+        }
+    });
+    autofocus_by_id("popup-window-tags");
+
+    rsx! {
+        div {
+            class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+            onkeydown: move |e| {
+                if e.key() == Key::Escape {
+                    app_state.close_popup();
+                }
+            },
+            div {
+                id: "popup-window-tags",
+                tabindex: 0,
+                class: "flex flex-col bg-surface rounded-lg shadow-xl overflow-hidden w-[90%] max-w-sm p-4 gap-4",
+                onclick: move |e| e.stop_propagation(),
+
+                HeaderTagEditor {}
+
+                // Body
+                ListingTagEditor { context, inventory }
+                FormTagEditor { context, inventory, popup_errors }
+
+                FooterTagEditor {}
+            }
+        }
+    }
+}
+
 type TagValidationError = Signal<Option<String>>;
+
 #[derive(Clone, Copy, PartialEq)]
 struct TagValidationErrors {
     name_error: TagValidationError,
@@ -417,161 +466,22 @@ impl TagContext {
 }
 
 #[component]
-pub fn TagEditorPopup(inventory: Signal<Inventory>, callback: Callback<Tag>) -> Element {
+fn HeaderTagEditor() -> Element {
     let mut app_state: AppState = use_context();
-    let mut popup_errors = TagValidationErrors::new();
-
-    let mut context = TagContext::new();
-
-    use_effect(move || {
-        if let Some(tag) = context.selected_tag() {
-            context.name.set(tag.name.clone());
-            context.bg_color.set(tag.bg_color.clone());
-            context.fg_color.set(tag.fg_color.clone());
-
-            popup_errors.name_error.set(None);
-            popup_errors.bg_color_error.set(None);
-        } else {
-            context.name.set(String::new());
-            context.bg_color.set(Color::default_bg());
-            context.fg_color.set(Color::default_fg())
-        }
-    });
-    autofocus_by_id("tag-name-input");
-
-    let mut handle_tag_save = move || {
-        if let Some(tag) = context.selected_tag() {
-            if !(context.name)().trim().is_empty() {
-                inventory.write().update_tag(
-                    tag.id,
-                    Tag::new((context.name)(), (context.bg_color)(), (context.fg_color)()),
-                );
-                context.selected_tag.set(None);
-            } else {
-                popup_errors
-                    .name_error
-                    .set(Some("Name has to be non-empty".to_string()));
-            }
-        }
-    };
-
-    let mut handle_tag_delete = move || {
-        inventory.write().remove_tag(
-            context
-                .selected_tag()
-                .map_or_else(|| Uuid::default(), |t| t.id),
-        );
-        context.selected_tag.set(None);
-    };
-
     rsx! {
-        div {
-            class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
-            onkeydown: move |e| {
-                if e.key() == Key::Escape {
-                    app_state.close_popup();
-                }
-            },
-            div {
-                class: "flex flex-col bg-surface rounded-lg shadow-xl overflow-hidden w-[90%] max-w-sm p-4 gap-4",
-                onclick: move |e| e.stop_propagation(),
-
-                // Header
-                div { class: "flex items-center justify-between",
-                    h2 { class: "text-lg font-semibold text-primary", "Manage Tags" }
-                    button {
-                        r#type: "button",
-                        class: "p-1 text-lg text-secondary hover:text-accent-hover transition-colors",
-                        onclick: move |_| app_state.close_popup(),
-                        "×"
-                    }
-                }
-
-                // Tag list
-                TagList { context, inventory }
-
-                // Form
-                form {
-                    class: "flex flex-col gap-4",
-                    class: if context.selected_tag().is_none() { "pointer-events-none opacity-40" },
-                    onsubmit: move |e| {
-                        e.prevent_default();
-                        // TODO: auto-save to storage;
-                    },
-
-                    // Name Input
-                    CustomLabel {
-                        title: "Name",
-                        value: context.name,
-                        oninput: move |e: Event<FormData>| {
-                            context.name.set(e.value());
-                            popup_errors.name_error.set(None)
-                        },
-                        error_signal: popup_errors.name_error,
-                        placeholder: "Tag name",
-                    }
-
-                    // Color Picker
-                    div { class: "flex flex-row justify-between",
-                        div {
-                            class: "flex gap-8 px-2 py-1",
-                            class: "rounded border border-secondary-muted",
-                            ColorPicker {
-                                title: "Background color",
-                                color: context.bg_color,
-                                error_signal: popup_errors.bg_color_error,
-                            }
-                            ColorPicker {
-                                title: "Text color",
-                                color: context.fg_color,
-                                error_signal: popup_errors.fg_color_error,
-                            }
-                        }
-                        div {
-                            class: "flex flex-col justify-center select-none items-end p-0.5",
-                            class: "rounded border border-secondary-muted",
-                            button {
-                                r#type: "button",
-                                class: "w-8 h-8 flex items-center justify-center rounded-lg",
-                                class: "text-green-500 hover:bg-green-500/10 transition-colors text-xl",
-                                onclick: move |_| handle_tag_save(),
-                                "✓"
-                            }
-
-                            button {
-                                r#type: "button",
-                                class: "w-8 h-8 flex items-center justify-center rounded-lg",
-                                class: "text-error-primary hover:bg-error-primary/10 transition-colors",
-                                onclick: move |_| { handle_tag_delete() },
-                                TrashIcon { class: "w-4 h-4" }
-                            }
-                        }
-                    }
-
-                    // Footer Buttons
-                    div { class: "flex justify-end gap-2 mt-2",
-                        button {
-                            r#type: "button",
-                            class: "px-3 py-1.5 rounded-md text-sm bg-surface-accented-muted text-primary",
-                            class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
-                            onclick: move |_| app_state.close_popup(),
-                            "Cancel"
-                        }
-                        button {
-                            r#type: "submit",
-                            class: "px-3 py-1.5 rounded-md text-sm bg-accent text-primary",
-                            class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
-                            "Save"
-                        }
-                    }
-                }
+        div { class: "flex items-center justify-between",
+            h2 { class: "text-lg font-semibold text-primary", "Manage Tags" }
+            button {
+                r#type: "button",
+                class: "p-1 text-lg text-secondary hover:text-accent-hover transition-colors",
+                onclick: move |_| app_state.close_popup(),
+                "×"
             }
         }
     }
 }
-
 #[component]
-fn TagList(context: TagContext, inventory: Signal<Inventory>) -> Element {
+fn ListingTagEditor(context: TagContext, inventory: Signal<Inventory>) -> Element {
     rsx! {
         div { class: "flex flex-col gap-2 border-b border-secondary-muted",
             div { class: "flex justify-between items-center",
@@ -628,7 +538,96 @@ fn TagList(context: TagContext, inventory: Signal<Inventory>) -> Element {
         }
     }
 }
+#[component]
+fn FormTagEditor(
+    context: TagContext,
+    inventory: Signal<Inventory>,
+    popup_errors: TagValidationErrors,
+) -> Element {
+    let mut handle_tag_save = move || {
+        if let Some(tag) = context.selected_tag() {
+            if !(context.name)().trim().is_empty() {
+                inventory.write().update_tag(
+                    tag.id,
+                    Tag::new((context.name)(), (context.bg_color)(), (context.fg_color)()),
+                );
+                context.selected_tag.set(None);
+            } else {
+                popup_errors
+                    .name_error
+                    .set(Some("Name has to be non-empty".to_string()));
+            }
+        }
+    };
+    let mut handle_tag_delete = move || {
+        inventory.write().remove_tag(
+            context
+                .selected_tag()
+                .map_or_else(|| Uuid::default(), |t| t.id),
+        );
+        context.selected_tag.set(None);
+    };
 
+    rsx! {
+        form {
+            class: "flex flex-col gap-4",
+            class: if context.selected_tag().is_none() { "pointer-events-none opacity-40" },
+            onsubmit: move |e| {
+                e.prevent_default();
+                handle_tag_save()
+            },
+
+            // Name
+            CustomLabel {
+                title: "Name",
+                value: context.name,
+                oninput: move |e: Event<FormData>| {
+                    context.name.set(e.value());
+                    popup_errors.name_error.set(None)
+                },
+                error_signal: popup_errors.name_error,
+                placeholder: "Tag name",
+            }
+
+            div { class: "flex flex-row justify-between",
+                // Colors
+                div {
+                    class: "flex gap-8 px-2 py-1",
+                    class: "rounded border border-secondary-muted",
+                    ColorPicker {
+                        title: "Background color",
+                        color: context.bg_color,
+                        error_signal: popup_errors.bg_color_error,
+                    }
+                    ColorPicker {
+                        title: "Text color",
+                        color: context.fg_color,
+                        error_signal: popup_errors.fg_color_error,
+                    }
+                }
+                // Buttons
+                div {
+                    class: "flex flex-col justify-center select-none items-end p-0.5",
+                    class: "rounded border border-secondary-muted",
+                    button {
+                        r#type: "submit",
+                        class: "w-8 h-8 flex items-center justify-center rounded-lg",
+                        class: "text-green-500 hover:bg-green-500/10 transition-colors text-xl",
+                        "✓"
+                    }
+
+                    button {
+                        r#type: "button",
+                        class: "w-8 h-8 flex items-center justify-center rounded-lg",
+                        class: "text-error-primary hover:bg-error-primary/10 transition-colors",
+                        onclick: move |_| { handle_tag_delete() },
+                        TrashIcon { class: "w-4 h-4" }
+                    }
+                }
+            }
+        }
+    }
+}
 #[component]
 fn ColorPicker(title: String, color: Signal<Color>, error_signal: TagValidationError) -> Element {
     rsx! {
@@ -653,6 +652,25 @@ fn ColorPicker(title: String, color: Signal<Color>, error_signal: TagValidationE
             }
             if let Some(msg) = error_signal() {
                 span { class: "text-xs text-error-primary", "{msg}" }
+            }
+        }
+    }
+}
+#[component]
+fn FooterTagEditor() -> Element {
+    let mut app_state: AppState = use_context();
+    rsx! {
+        div { class: "flex justify-end gap-2 mt-2",
+            button {
+                class: "px-3 py-1.5 rounded-md text-sm bg-surface-accented-muted text-primary",
+                class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
+                onclick: move |_| app_state.close_popup(),
+                "Cancel"
+            }
+            button {
+                class: "px-3 py-1.5 rounded-md text-sm bg-accent text-primary",
+                class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
+                "Save"
             }
         }
     }
