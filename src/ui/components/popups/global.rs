@@ -37,7 +37,7 @@ fn CustomLabel(
     #[props(extends = input)] attributes: Vec<Attribute>,
 ) -> Element {
     rsx! {
-        label { class: "flex-1 flex flex-col gap-1 min-w-0",
+        label { class: "flex flex-col gap-1 min-w-0",
             span { class: "text-xs text-secondary", "{title}" }
 
             input {
@@ -181,10 +181,8 @@ pub fn ItemEditorPopup(
                             FolderData { item, inventory }
                         }
 
-                        div {
-                            class: "flex items-center justify-center w-full min-h-[80px]",
-                            class: "bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg",
-                            span { class: "text-secondary text-sm", "Tags area (dummy)" }
+                        div { class: "flex w-full min-h-[80px]",
+                            TagData { item, inventory }
                         }
                     }
 
@@ -264,7 +262,7 @@ fn TextData(item: Signal<Item>, popup_errors: ItemValidationErrors) -> Element {
             span { class: "text-xs text-secondary", "Description" }
             textarea {
                 class: "px-2 py-1.5 text-sm bg-surface resize-none h-20",
-                class: "border border-secondary-muted rounded",
+                class: "rounded border border-secondary-muted",
                 class: "focus:border-accent focus:outline-none",
                 value: "{item.read().description()}",
                 oninput: move |e| {
@@ -335,13 +333,62 @@ fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
                 onclick: move |_| selecting_folder.set(true),
                 class: "flex items-center gap-1 px-1",
                 class: "w-[40%] h-8 text-primary-muted text-xl",
-                class: "border border-secondary-muted rounded",
+                class: "rounded border border-secondary-muted",
                 class: "hover:font-semibold hover:border-accent hover:text-accent-hover transition-colors",
 
                 title: "Choose folder",
 
                 "🖿"
                 span { class: "text-xs truncate pt-0.5", "{folder_name}" }
+            }
+        }
+    }
+}
+#[component]
+fn TagData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
+    let selected_tags = item.read().tags.clone();
+    let available_tags: Vec<_> = inventory
+        .read()
+        .tags
+        .iter()
+        .filter(|t| !selected_tags.contains(&t.id))
+        .cloned()
+        .collect();
+    rsx! {
+        div {
+            class: "flex flex-col w-full p-2 gap-2",
+            class: "rounded border border-secondary-muted",
+            // Selected tags
+            div { class: "flex flex-col min-w-0 gap-1",
+                span { class: "text-xs font-semibold text-secondary", "Selected" }
+                div { class: "flex flex-wrap gap-1 max-h-12 overflow-y-auto p-1",
+                    if item.read().tags.is_empty() {
+                        span { class: "text-xs text-secondary-muted italic px-1",
+                            "Attach tags to this item"
+                        }
+                    } else {
+                        for tag_id in selected_tags {
+                            if let Some(tag) = inventory.read().get_tag(tag_id) {
+                                TagView { tag: tag.clone(), onclick: move |_| {} }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Available tags
+            div { class: "flex flex-col min-w-0",
+                span { class: "text-xs font-semibold text-secondary", "Available" }
+                div { class: "flex flex-wrap gap-1 max-h-12 overflow-y-auto p-1",
+
+                    if available_tags.is_empty() {
+                        span { class: "text-xs text-secondary-muted italic px-1", "No available tags" }
+                    } else {
+                        for tag in available_tags {
+                            TagView { tag, onclick: move |_| {} }
+                        }
+                    }
+                }
             }
         }
     }
@@ -519,17 +566,9 @@ fn ListingTagEditor(context: TagContext, inventory: Signal<Inventory>) -> Elemen
                                 }
                             }
                         } else {
-                            div {
-                                key: "{tag.id}",
-                                class: "group relative flex items-center gap-1 px-2 py-1",
-                                class: "rounded-xl text-xs font-medium cursor-pointer transition-all ",
-                                class: "hover:ring-2 hover:ring-accent",
-
-                                style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
+                            TagView {
+                                tag: tag.clone(),
                                 onclick: move |_| { context.selected_tag.set(Some(tag.clone())) },
-                                span { class: "truncate max-w-[15ch] drop-shadow-sm",
-                                    "{tag.name}"
-                                }
                             }
                         }
                     }
@@ -636,7 +675,9 @@ fn ColorPicker(title: String, color: Signal<Color>, error_signal: TagValidationE
             div { class: "flex items-center  gap-2",
                 input {
                     r#type: "color",
-                    class: "w-12 h-10 p-0.5 border border-secondary-muted rounded cursor-pointer bg-transparent",
+                    class: "w-12 h-10 p-0.5 cursor-pointer bg-transparent",
+                    class: "rounded border border-secondary-muted",
+
                     value: "#{color()}",
                     oninput: move |e| {
                         match Color::from_hex(&e.value()) {
@@ -672,6 +713,22 @@ fn FooterTagEditor() -> Element {
                 class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
                 "Save"
             }
+        }
+    }
+}
+
+#[component]
+fn TagView(tag: Tag, onclick: Callback) -> Element {
+    rsx! {
+        div {
+            key: "{tag.id}",
+            class: "relative flex items-center gap-1 px-2 py-1",
+            class: "rounded-xl text-xs font-medium cursor-pointer",
+            class: "hover:ring-2 hover:ring-accent",
+
+            style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
+            onclick: move |_| { onclick.call(()) },
+            span { class: "truncate max-w-[15ch] drop-shadow-sm", "{tag.name}" }
         }
     }
 }
