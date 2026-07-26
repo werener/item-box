@@ -10,7 +10,10 @@ popups:
 1) divide local and global popups to allow reusing local ones inside the globals
 
 tags:
-1) Remove unnecessary context. Do the interactivity, similarly to item editing.
+1) Remove unnecessary context. Store not 3 fields, but just a "new tag style" or smth, similarly to item editing.
+2) Move delete button to the top right of item editor. 
+3) Remove save (v) button, and just save on any action. 
+4) Add revert changes button to set the tag to how it was before editing
 
 core:
 1) Add a custom type for price to indicate currency
