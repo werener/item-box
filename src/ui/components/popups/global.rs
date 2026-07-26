@@ -64,6 +64,21 @@ fn CustomLabel(
         }
     }
 }
+#[component]
+fn TagView(tag: Tag, onclick: Callback) -> Element {
+    rsx! {
+        div {
+            key: "{tag.id}",
+            class: "relative flex items-center gap-1 px-2 py-1",
+            class: "rounded-xl text-xs font-medium cursor-pointer",
+            class: "hover:ring-2 hover:ring-accent",
+
+            style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
+            onclick: move |_| { onclick.call(()) },
+            span { class: "truncate max-w-[15ch] drop-shadow-sm", "{tag.name}" }
+        }
+    }
+}
 
 /// Global popup to confirm deletion
 #[component]
@@ -346,14 +361,15 @@ fn FolderData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
 }
 #[component]
 fn TagData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
-    let selected_tags = item.read().tags.clone();
-    let available_tags: Vec<_> = inventory
-        .read()
-        .tags
-        .iter()
-        .filter(|t| !selected_tags.contains(&t.id))
-        .cloned()
-        .collect();
+    let available_tags: Memo<Vec<Tag>> = use_memo(move || {
+        inventory
+            .read()
+            .tags
+            .iter()
+            .filter(|t| !item.read().tags.clone().contains(&t.id))
+            .cloned()
+            .collect()
+    });
     rsx! {
         div {
             class: "flex flex-col w-full p-2 gap-2",
@@ -367,9 +383,14 @@ fn TagData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
                             "Attach tags to this item"
                         }
                     } else {
-                        for tag_id in selected_tags {
+                        for tag_id in item.read().tags.clone() {
                             if let Some(tag) = inventory.read().get_tag(tag_id) {
-                                TagView { tag: tag.clone(), onclick: move |_| {} }
+                                TagView {
+                                    tag: tag.clone(),
+                                    onclick: move |_| {
+                                        item.write().tags.retain(|t| *t != tag_id);
+                                    },
+                                }
                             }
                         }
                     }
@@ -381,11 +402,16 @@ fn TagData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
                 span { class: "text-xs font-semibold text-secondary", "Available" }
                 div { class: "flex flex-wrap gap-1 max-h-12 overflow-y-auto p-1",
 
-                    if available_tags.is_empty() {
+                    if available_tags.read().is_empty() {
                         span { class: "text-xs text-secondary-muted italic px-1", "No available tags" }
                     } else {
-                        for tag in available_tags {
-                            TagView { tag, onclick: move |_| {} }
+                        for tag in available_tags.read().clone() {
+                            TagView {
+                                tag: tag.clone(),
+                                onclick: move |_| {
+                                    item.write().tags.push(tag.id);
+                                },
+                            }
                         }
                     }
                 }
@@ -713,22 +739,6 @@ fn FooterTagEditor() -> Element {
                 class: "hover:bg-accent-hover hover:text-primary-hover transition-colors",
                 "Save"
             }
-        }
-    }
-}
-
-#[component]
-fn TagView(tag: Tag, onclick: Callback) -> Element {
-    rsx! {
-        div {
-            key: "{tag.id}",
-            class: "relative flex items-center gap-1 px-2 py-1",
-            class: "rounded-xl text-xs font-medium cursor-pointer",
-            class: "hover:ring-2 hover:ring-accent",
-
-            style: "background-color: #{tag.bg_color}; color: #{tag.fg_color};",
-            onclick: move |_| { onclick.call(()) },
-            span { class: "truncate max-w-[15ch] drop-shadow-sm", "{tag.name}" }
         }
     }
 }
