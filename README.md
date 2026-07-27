@@ -1,6 +1,9 @@
 # vToolBox
 
 # TODO:
+FIX:
+1) placeholder not reloading after the image is fetched
+
 items:
 1) add skeleton-rendering for an image
 2) add an "item-type" icon in the top-left corner
