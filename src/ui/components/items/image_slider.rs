@@ -59,38 +59,38 @@ impl ImageSliderState {
 #[component]
 pub fn ImageSlider(image_ids: Vec<Uuid>) -> Element {
     let image_provider: Signal<Option<Arc<dyn ImageProvider>>> = use_context();
-    let mut images = use_signal(|| Vec::<String>::new());
 
-    // Resolve image IDs to URIs
-    use_effect(move || {
-        let provider = image_provider.read().clone();
+    let images_resource = use_resource(move || {
         let ids = image_ids.clone();
 
-        spawn(async move {
-            if provider.is_none() {
-                images.set(vec![
-                    asset!("/assets/images/tool-placeholder.png").to_string()
-                ]);
-                return;
+        async move {
+            if ids.is_empty() {
+                return vec![asset!("/assets/images/tool-placeholder.png").to_string()];
+            }
+            if image_provider.read().is_none() {
+                return vec![asset!("/assets/images/tool-placeholder.png").to_string()];
             }
 
-            let provider = provider.unwrap();
+            let mut resolved_images = Vec::new();
             for id in ids {
-                if let Ok(Some(uri)) = provider.get_image_uri(id).await {
-                    images.write().push(uri);
+                if let Ok(Some(uri)) = image_provider().unwrap().get_image_uri(id).await {
+                    resolved_images.push(uri);
                 }
             }
 
-            if images.read().is_empty() {
-                images.set(vec![
-                    asset!("/assets/images/tool-placeholder.png").to_string()
-                ])
+            if resolved_images.is_empty() {
+                resolved_images.push(asset!("/assets/images/tool-placeholder.png").to_string());
             }
-        });
+
+            resolved_images
+        }
     });
 
+    let images = images_resource()
+        .unwrap_or_else(|| vec![asset!("/assets/images/tool-placeholder.png").to_string()]);
+
     let images_len = images.len();
-    let state = ImageSliderState::new(images.read().clone());
+    let state = ImageSliderState::new(images.clone());
 
     rsx! {
         div { class: "w-full h-full flex flex-col select-none",

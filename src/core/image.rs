@@ -135,7 +135,7 @@ impl ImageProvider for WebImageProvider {
 
         let js_array = js_sys::Uint8Array::from(data);
         let js_value: wasm_bindgen::JsValue = js_array.into();
-        let mut record = js_sys::Object::new();
+        let record = js_sys::Object::new();
         js_sys::Reflect::set(&record, &"id".into(), &id.to_string().into()).ok();
         js_sys::Reflect::set(&record, &"data".into(), &js_value).ok();
 

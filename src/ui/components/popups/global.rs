@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use crate::{
     core::{
+        image::ImageProvider,
         inventory::Inventory,
         models::{Color, Item, Tag},
     },
@@ -185,17 +188,16 @@ pub fn ItemEditorPopup(
 
                     // Body
                     div { class: "grid grid-cols-1 sm:grid-cols-[1fr_1fr] gap-4 p-4",
-                        div { class: "flex justify-between w-full gap-2",
-                            PhotoData { item }
-                        }
+
+                        PhotoData { item }
+
                         div { class: "flex flex-col gap-1 min-w-0 sm:row-span-2",
                             TextData { item, popup_errors }
                             FolderData { item, inventory }
                         }
 
-                        div { class: "flex",
-                            TagData { item, inventory }
-                        }
+                        TagData { item, inventory }
+                    
                     }
 
                     FooterItemEditor {}
@@ -211,55 +213,32 @@ fn PhotoData(item: Signal<Item>) -> Element {
         style {
         }
         div {
-            class: "flex justify-between w-full gap-1",
+            class: "flex flex-row justify-between w-full gap-1",
             class: "p-2 rounded border border-secondary-muted",
-
             div {
-                class: "flex flex-wrap content-start gap-1 flex-1 max-h-40 sm:max-h-20 overflow-y-auto p-1",
+                class: "flex flex-1 flex-wrap content-start hide-scrollbar overflow-y-auto",
+                class: "gap-1 p-1 max-h-40 shrink-0",
                 class: "rounded border-r border-secondary-muted",
                 style: "scrollbar-width: none; -ms-overflow-style: none",
+
                 if item.read().images.is_empty() {
                     div { class: "flex items-center justify-center w-full h-full min-h-[60px]",
                         span { class: "text-xs text-secondary-muted italic", "No photos attached" }
                     }
                 } else {
-                    for i in item.read().images.clone() {
-                        div {
-                            key: "{i}",
-                            class: "group relative w-[30%] aspect-square rounded overflow-hidden border border-secondary-muted shrink-0",
-                            img {
-                                src: asset!("/assets/images/tool-placeholder.png").to_string(),
-                                class: "w-full h-full object-cover",
-                                alt: "Item photo",
-                            }
-
-                            div { class: "absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity",
-                                button {
-                                    r#type: "button",
-                                    class: "text-white hover:text-error-primary transition-colors p-1",
-                                    title: "Remove photo",
-                                    // onclick: move |_| {
-                                    //     item.write().images.retain(|id| *id != image_id);
-                                    // },
-                                    "×"
-                                }
-                            }
+                    for image_id in item.read().images.clone() {
+                        PhotoThumbnail {
+                            image_id,
+                            on_remove: move |id: Uuid| {
+                                item.write().images.retain(|x| *x != id);
+                            },
                         }
                     }
                 }
             }
 
-            // Right: Action buttons
-            div { class: "flex flex-col gap-2 justify-center shrink-0",
-                button {
-                    r#type: "button",
-                    class: "flex items-center justify-center min-h-4 aspect-square px-3 py-2",
-                    class: "text-sm rounded-md text-primary",
-                    class: "hover:text-accent-hover transition-colors",
-
-                    onclick: move |_| {},
-                    "+"
-                }
+            div { class: "flex flex-col gap-2 justify-center",
+                ImageUploader { item }
 
                 button {
                     r#type: "button",
@@ -275,6 +254,105 @@ fn PhotoData(item: Signal<Item>) -> Element {
                 }
             
             }
+        }
+    }
+}
+#[component]
+fn PhotoThumbnail(image_id: Uuid, on_remove: Callback<Uuid>) -> Element {
+    let image_provider = use_context::<Signal<Option<Arc<dyn ImageProvider>>>>();
+    
+    let uri_resource = use_resource(move || {
+        let provider = image_provider.read().clone();
+        async move {
+            if let Some(provider) = provider {
+                provider.get_image_uri(image_id).await.ok().flatten()
+            } else {
+                None
+            }
+        }
+    });
+
+    rsx! {
+        div {
+            key: "{image_id}",
+            class: "group relative w-16 h-16 rounded overflow-hidden border border-secondary-muted shrink-0 bg-surface-accented-muted",
+
+            if let Some(Some(actual_uri)) = uri_resource() {
+                img {
+                    src: "{actual_uri}",
+                    class: "w-full h-full object-cover",
+                    alt: "Item photo",
+                }
+            } else {
+                div { class: "w-full h-full flex items-center justify-center text-xs text-secondary-muted",
+                    "..."
+                }
+            }
+
+            div { class: "absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity",
+                button {
+                    r#type: "button",
+                    class: "text-white hover:text-error-primary transition-colors p-1 text-lg leading-none",
+                    title: "Remove photo",
+                    onclick: move |_| {
+                        on_remove.call(image_id);
+                    },
+                    "×"
+                }
+            }
+        }
+    }
+}
+#[component]
+fn ImageUploader(item: Signal<Item>) -> Element {
+    let mut is_uploading = use_signal(|| false);
+    let image_provider = use_context::<Signal<Option<Arc<dyn ImageProvider>>>>();
+
+    let handle_file_change = move |e: Event<FormData>| {
+        let files = e.files();
+
+        if files.is_empty() {
+            return;
+        }
+
+        is_uploading.set(true);
+
+        spawn(async move {
+            if let Some(provider) = image_provider() {
+                for file_data in files {
+                    if let Ok(bytes) = file_data.read_bytes().await {
+                        if let Ok(new_image_id) = provider.save_image(&bytes).await {
+                            item.write().images.push(new_image_id);
+                        }
+                    }
+                }
+            }
+            is_uploading.set(false);
+        });
+    };
+
+    rsx! {
+        label {
+            r#for: "photo-file-picker",
+            class: "flex items-center justify-center cursor-pointer disabled:opacity-50",
+            class: "flex items-center justify-center cursor-pointer disabled:opacity-50",
+            class: "hover:text-accent-hover transition-colors",
+
+            title: "Add photo",
+            if is_uploading() {
+                "..."
+            } else {
+                "+"
+            }
+        }
+
+        input {
+            id: "photo-file-picker",
+            r#type: "file",
+            multiple: true,
+            accept: "image/*",
+            class: "hidden",
+            onchange: handle_file_change,
         }
     }
 }
