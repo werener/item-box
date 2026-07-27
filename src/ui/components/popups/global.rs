@@ -185,18 +185,15 @@ pub fn ItemEditorPopup(
 
                     // Body
                     div { class: "grid grid-cols-1 sm:grid-cols-[1fr_1fr] gap-4 p-4",
-                        div {
-                            class: "flex items-center justify-center w-full aspect-video",
-                            class: "bg-surface-accented-muted border-2 border-dashed border-secondary-muted rounded-lg",
-                            span { class: "text-secondary text-sm", "Photo area" }
+                        div { class: "flex justify-between w-full gap-2",
+                            PhotoData { item }
                         }
-
                         div { class: "flex flex-col gap-1 min-w-0 sm:row-span-2",
                             TextData { item, popup_errors }
                             FolderData { item, inventory }
                         }
 
-                        div { class: "flex w-full min-h-[80px]",
+                        div { class: "flex",
                             TagData { item, inventory }
                         }
                     }
@@ -208,6 +205,79 @@ pub fn ItemEditorPopup(
     }
 }
 
+#[component]
+fn PhotoData(item: Signal<Item>) -> Element {
+    rsx! {
+        style {
+        }
+        div {
+            class: "flex justify-between w-full gap-1",
+            class: "p-2 rounded border border-secondary-muted",
+
+            div {
+                class: "flex flex-wrap content-start gap-1 flex-1 max-h-40 sm:max-h-20 overflow-y-auto p-1",
+                class: "rounded border-r border-secondary-muted",
+                style: "scrollbar-width: none; -ms-overflow-style: none",
+                if item.read().images.is_empty() {
+                    div { class: "flex items-center justify-center w-full h-full min-h-[60px]",
+                        span { class: "text-xs text-secondary-muted italic", "No photos attached" }
+                    }
+                } else {
+                    for i in item.read().images.clone() {
+                        div {
+                            key: "{i}",
+                            class: "group relative w-[30%] aspect-square rounded overflow-hidden border border-secondary-muted shrink-0",
+                            img {
+                                src: asset!("/assets/images/tool-placeholder.png").to_string(),
+                                class: "w-full h-full object-cover",
+                                alt: "Item photo",
+                            }
+
+                            div { class: "absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity",
+                                button {
+                                    r#type: "button",
+                                    class: "text-white hover:text-error-primary transition-colors p-1",
+                                    title: "Remove photo",
+                                    // onclick: move |_| {
+                                    //     item.write().images.retain(|id| *id != image_id);
+                                    // },
+                                    "×"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Right: Action buttons
+            div { class: "flex flex-col gap-2 justify-center shrink-0",
+                button {
+                    r#type: "button",
+                    class: "flex items-center justify-center min-h-4 aspect-square px-3 py-2",
+                    class: "text-sm rounded-md text-primary",
+                    class: "hover:text-accent-hover transition-colors",
+
+                    onclick: move |_| {},
+                    "+"
+                }
+
+                button {
+                    r#type: "button",
+                    class: "flex items-center justify-center min-h-4 aspect-square px-3 py-2",
+                    class: "text-sm text-primary rounded-md",
+                    class: "hover:text-error-primary-hover transition-colors",
+
+                    class: if item.read().images.is_empty() { "pointer-events-none opacity-40" },
+                    onclick: move |_| {
+                        item.write().images.clear();
+                    },
+                    "x"
+                }
+            
+            }
+        }
+    }
+}
 type ItemValidationError = Signal<Option<String>>;
 
 #[derive(Clone, Copy, PartialEq)]
