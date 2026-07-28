@@ -4,6 +4,7 @@ use uuid::Uuid;
 pub type ItemId = Uuid;
 pub type FolderId = Uuid;
 pub type TagId = Uuid;
+pub type ImageId = Uuid;
 pub type Coords = (f64, f64);
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
