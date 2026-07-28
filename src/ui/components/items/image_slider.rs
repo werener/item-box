@@ -1,79 +1,31 @@
 // src/ui/components/items/image_slider.rs
-use crate::core::image::ImageProvider;
+use crate::{
+    core::{image::ImageProvider, inventory::Inventory},
+    ui::components::popups::types::ItemId,
+};
 use dioxus::prelude::*;
 use std::sync::Arc;
-use uuid::Uuid;
 
-#[derive(Clone, Copy, PartialEq)]
-struct ImageSliderState {
-    current_index: Signal<usize>,
-    current_image: Memo<String>,
-    touch_start_x: Signal<Option<f64>>,
-}
-
-impl ImageSliderState {
-    fn new(images: Vec<String>) -> Self {
-        let current_index = use_signal(|| 0);
-        let touch_start_x = use_signal(|| None);
-        let current_image = use_memo(move || {
-            images
-                .get(current_index())
-                .cloned()
-                .unwrap_or_else(|| asset!("/assets/images/tool-placeholder.png").to_string())
-        });
-
-        Self {
-            current_index,
-            current_image,
-            touch_start_x,
-        }
-    }
-
-    fn next(&mut self, total_images: usize) {
-        (self.current_index).set(((self.current_index)() + 1) % total_images);
-    }
-
-    fn prev(&mut self, total_images: usize) {
-        let new_index = if (self.current_index)() == 0 {
-            total_images - 1
-        } else {
-            (self.current_index)() - 1
-        };
-        (self.current_index).set(new_index);
-    }
-
-    fn handle_swipe(&mut self, start_x: f64, end_x: f64, total_images: usize) {
-        let diff = end_x - start_x;
-
-        if diff.abs() > 50.0 {
-            if diff > 0.0 {
-                self.prev(total_images);
-            } else {
-                self.next(total_images);
-            }
-        }
-    }
-}
-
-/// ImageSlider is a component that renders images and allows to swipe thorough them.
+/// ImageSlider is a component that renders images and allows swiping through them.
 #[component]
-pub fn ImageSlider(image_ids: Vec<Uuid>) -> Element {
+pub fn ImageSlider(item_id: ItemId, inventory: Signal<Inventory>) -> Element {
     let image_provider: Signal<Option<Arc<dyn ImageProvider>>> = use_context();
-
     let images_resource = use_resource(move || {
-        let ids = image_ids.clone();
+        let images = inventory
+            .read()
+            .get_item(item_id)
+            .map(|i| i.images.clone())
+            .unwrap_or_default();
+        let provider = image_provider.read().clone();
 
         async move {
-            if ids.is_empty() {
-                return vec![asset!("/assets/images/tool-placeholder.png").to_string()];
-            }
-            if image_provider.read().is_none() {
+            if images.is_empty() || provider.is_none() {
                 return vec![asset!("/assets/images/tool-placeholder.png").to_string()];
             }
 
             let mut resolved_images = Vec::new();
-            for id in ids {
-                if let Ok(Some(uri)) = image_provider().unwrap().get_image_uri(id).await {
+            for image in images {
+                if let Ok(Some(uri)) = provider.as_ref().unwrap().get_image_uri(image).await {
                     resolved_images.push(uri);
                 }
             }
@@ -86,83 +38,106 @@ pub fn ImageSlider(image_ids: Vec<Uuid>) -> Element {
         }
     });
 
-    let images = images_resource()
-        .unwrap_or_else(|| vec![asset!("/assets/images/tool-placeholder.png").to_string()]);
+    let mut current_index = use_signal(|| 0);
+    let mut touch_start_x = use_signal(|| None::<f64>);
 
-    let images_len = images.len();
-    let state = ImageSliderState::new(images.clone());
+    use_effect(move || {
+        let len = images_resource().map(|v| v.len()).unwrap_or(0);
+        if len > 0 && current_index() >= len {
+            current_index.set(len - 1);
+        } else if len == 0 {
+            current_index.set(0);
+        }
+    });
+
+    let current_image = use_memo(move || {
+        let imgs = images_resource().unwrap_or_else(|| {
+            vec![asset!("/assets/images/tool-placeholder.png").to_string()]
+        });
+        let idx = current_index();
+        imgs.get(idx)
+            .cloned()
+            .unwrap_or_else(|| asset!("/assets/images/tool-placeholder.png").to_string())
+    });
+
+    let images_len = use_memo(move || images_resource().map(|v| v.len()).unwrap_or(0));
+
+    let mut next = move || {
+        let len = images_len();
+        if len > 0 {
+            current_index.set((current_index() + 1) % len);
+        }
+    };
+
+    let mut prev = move || {
+        let len = images_len();
+        if len > 0 {
+            let new_index = if current_index() == 0 { len - 1 } else { current_index() - 1 };
+            current_index.set(new_index);
+        }
+    };
+
+    let mut handle_swipe = move |start_x: f64, end_x: f64| {
+        let diff = end_x - start_x;
+        if diff.abs() > 50.0 {
+            if diff > 0.0 {
+                prev();
+            } else {
+                next();
+            }
+        }
+    };
 
     rsx! {
         div { class: "w-full h-full flex flex-col select-none",
-            Images { state, images_len }
-            Controls { state, images_len }
-        }
-    }
-}
-
-#[component]
-fn Images(state: ImageSliderState, images_len: usize) -> Element {
-    rsx! {
-        div {
-            class: "flex-1 flex items-center justify-center overflow-hidden",
-
-            // mobile implementation
-            ontouchstart: move |e: Event<TouchData>| {
-                if let Some(touch) = e.touches().first() {
-                    state.touch_start_x.set(Some(touch.client_coordinates().x));
+            div {
+                class: "flex-1 flex items-center justify-center overflow-hidden",
+                ontouchstart: move |e: Event<TouchData>| {
+                    if let Some(touch) = e.touches().first() {
+                        touch_start_x.set(Some(touch.client_coordinates().x));
+                    }
+                },
+                ontouchend: move |e: Event<TouchData>| {
+                    if let Some(start_x) = touch_start_x.take() {
+                        if let Some(touch) = e.touches_changed().first() {
+                            handle_swipe(start_x, touch.client_coordinates().x);
+                        }
+                    }
+                },
+                onmousedown: move |e: MouseEvent| {
+                    touch_start_x.set(Some(e.client_coordinates().x));
+                },
+                onmouseup: move |e: MouseEvent| {
+                    if let Some(start_x) = touch_start_x.take() {
+                        handle_swipe(start_x, e.client_coordinates().x);
+                    }
+                },
+                img {
+                    src: "{current_image}",
+                    draggable: "false",
+                    class: "w-full h-full object-cover object-center select-none",
                 }
-            },
-            ontouchend: move |e: Event<TouchData>| {
-                if let Some(start_x) = (state.touch_start_x).take() {
-                    if let Some(touch) = e.touches_changed().first() {
-                        let end_x = touch.client_coordinates().x;
-                        state.handle_swipe(start_x, end_x, images_len);
+            }
+            div { class: "flex justify-between items-center px-2 py-0.5",
+                button {
+                    class: "text-sm text-primary font-semibold hover:text-accent-hover",
+                    onclick: move |_| prev(),
+                    "<"
+                }
+                div { class: "flex gap-1",
+                    for index in 0..images_len() {
+                        button {
+                            class: "w-1.5 h-1.5 rounded-full",
+                            class: if index == current_index() { "bg-accent-hover" } else { "bg-secondary hover:bg-accent" },
+                            onclick: move |_| current_index.set(index),
+                        }
                     }
                 }
-            },
-
-            // desktop implementation
-            onmousedown: move |e: MouseEvent| {
-                state.touch_start_x.set(Some(e.client_coordinates().x));
-            },
-            onmouseup: move |e: MouseEvent| {
-                if let Some(start_x) = (state.touch_start_x).take() {
-                    let end_x = e.client_coordinates().x;
-                    state.handle_swipe(start_x, end_x, images_len);
+                button {
+                    class: "text-sm text-primary font-semibold hover:text-accent-hover",
+                    onclick: move |_| next(),
+                    ">"
                 }
-            },
-
-            img {
-                src: (state.current_image)(),
-                draggable: "false",
-                class: "w-full h-full object-cover object-center select-none",
-            }
-        }
-    }
-}
-
-#[component]
-fn Controls(state: ImageSliderState, images_len: usize) -> Element {
-    rsx! {
-        div { class: "flex justify-between items-center px-2 py-0.5",
-            button {
-                class: "text-sm text-primary font-semibold hover:text-accent-hover",
-                onclick: move |_| state.prev(images_len),
-                "<"
-            }
-            div { class: "flex gap-1",
-                for index in (0..images_len) {
-                    button {
-                        class: "w-1.5 h-1.5 rounded-full ",
-                        class: if index == (state.current_index)() { "bg-accent-hover" } else { "bg-secondary hover:bg-accent" },
-                        onclick: move |_| state.current_index.set(index),
-                    }
-                }
-            }
-            button {
-                class: "text-sm text-primary font-semibold hover:text-accent-hover",
-                onclick: move |_| state.next(images_len),
-                ">"
             }
         }
     }

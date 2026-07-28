@@ -3,26 +3,29 @@ use super::control_panel::ControlPanelItem;
 use super::image_slider::ImageSlider;
 use crate::core::inventory::Inventory;
 use crate::core::models::{Item, Tag};
+use crate::ui::components::popups::types::ItemId;
 use dioxus::prelude::*;
 
 #[component]
-pub fn ItemCard(item: Item, inventory: Signal<Inventory>) -> Element {
+pub fn ItemCard(item_id: ItemId, inventory: Signal<Inventory>) -> Element {
     rsx! {
-        div { class: "relative w-full aspect-[9/16] bg-surface-muted
+        if let Some(item) = inventory.read().get_item(item_id) {
+            div { class: "relative w-full aspect-[9/16] bg-surface-muted
             rounded-md shadow-[0_0_20px_rgba(0,0,0,0.3)]
             flex flex-col",
 
-            div { class: "h-[60%]",
-                ImageSlider { image_ids: item.clone().images }
-            }
+                div { class: "h-[60%]",
+                    ImageSlider { item_id, inventory }
+                }
 
-            div { class: "h-[30%] flex flex-col",
-                ItemData { item: item.clone() }
-                Tags { item: item.clone(), inventory }
-            }
+                div { class: "h-[30%] flex flex-col",
+                    ItemData { item: item.clone() }
+                    Tags { item: item.clone(), inventory }
+                }
 
-            div { class: "h-[10%]",
-                ControlPanelItem { item: item.clone(), inventory }
+                div { class: "h-[10%]",
+                    ControlPanelItem { item: item.clone(), inventory }
+                }
             }
         }
     }

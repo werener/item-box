@@ -1,6 +1,7 @@
 // src/ui/components/items/item_grid.rs
 use super::item_card::ItemCard;
 use crate::core::inventory::Inventory;
+use crate::ui::components::popups::types::ItemId;
 use crate::ui::state::AppState;
 use dioxus::prelude::*;
 
@@ -8,7 +9,7 @@ use dioxus::prelude::*;
 pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
     let app_state: AppState = use_context();
 
-    let filtered_items = use_memo(move || {
+    let filtered_items: Memo<Vec<ItemId>> = use_memo(move || {
         let inv = inventory.read();
 
         match (app_state.selected_folder)() {
@@ -16,9 +17,9 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
                 .items
                 .iter()
                 .filter(|item| item.folder == Some(folder_id))
-                .cloned()
+                .map(|item| item.id)
                 .collect(),
-            None => inv.items.clone(),
+            None => inv.items.iter().map(|item| item.id).collect(),
         }
     });
 
@@ -31,8 +32,8 @@ pub fn ItemGrid(inventory: Signal<Inventory>) -> Element {
             }
         } else {
             div { class: "grid grid-cols-[repeat(auto-fill,175px)] gap-2 p-2 justify-center",
-                for item in filtered_items.read().iter() {
-                    ItemCard { item: item.clone(), inventory }
+                for item_id in filtered_items() {
+                    ItemCard { item_id, inventory }
                 }
             }
         }
