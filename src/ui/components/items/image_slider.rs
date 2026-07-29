@@ -4,7 +4,9 @@ use crate::{
     ui::components::popups::types::{ImageId, ItemId},
 };
 use dioxus::prelude::*;
-use std::sync::Arc;
+use std::{ops::Range, sync::Arc};
+
+const MAX_CIRCLES: usize = 9;
 
 /// ImageSlider is a component that renders images and allows swiping through them.
 #[component]
@@ -61,10 +63,10 @@ pub fn ImageSlider(item_id: ItemId, inventory: Signal<Inventory>) -> Element {
                     "<"
                 }
                 div { class: "flex gap-1",
-                    for index in 0..(state.images_len)() {
+                    for index in state.get_range() {
                         button {
                             class: "w-1.5 h-1.5 rounded-full",
-                            class: if index == (state.current_index)() { "bg-accent-hover" } else { "bg-secondary hover:bg-accent" },
+                            class: "{circle_color(index, state)}",
                             onclick: move |_| state.current_index.set(index),
                         }
                     }
@@ -76,6 +78,14 @@ pub fn ImageSlider(item_id: ItemId, inventory: Signal<Inventory>) -> Element {
                 }
             }
         }
+    }
+}
+
+fn circle_color(index: usize, state: SliderState) -> &'static str {
+    match index {
+        i if i == state.current_index() => "bg-accent-hover",
+        i if (i == 0 || i == state.images_len() - 1) => "bg-primary-muted hover:bg-accent",
+        _ => "bg-secondary hover:bg-accent",
     }
 }
 
@@ -149,17 +159,24 @@ impl SliderState {
         }
     }
 
+    fn current_index(&self) -> usize {
+        (self.current_index)()
+    }
+    fn images_len(&self) -> usize {
+        (self.images_len)()
+    }
+
     fn next(&mut self) {
-        let len = (self.images_len)();
-        let idx = (self.current_index)();
+        let len = self.images_len();
+        let idx = self.current_index();
         if len > 0 {
             self.current_index.set((idx + 1) % len);
         }
     }
 
     fn prev(&mut self) {
-        let len = (self.images_len)();
-        let idx = (self.current_index)();
+        let len = self.images_len();
+        let idx = self.current_index();
         if len > 0 {
             let new_index = if idx == 0 { len - 1 } else { idx - 1 };
             self.current_index.set(new_index);
@@ -175,5 +192,14 @@ impl SliderState {
                 self.next();
             }
         }
+    }
+
+    fn get_range(&self) -> Range<usize> {
+        let len = self.images_len();
+
+        let capacity = std::cmp::min(MAX_CIRCLES, len);
+        let right = std::cmp::min(len, self.current_index().saturating_add(MAX_CIRCLES.div_ceil(2)).max(capacity));
+        let left = right - capacity;
+        left..right
     }
 }
