@@ -4,6 +4,9 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use uuid::Uuid;
 
+const PROJECT_NAME: &str =
+    option_env!("PROJECT_NAME").expect("env variable 'PROJECT_NAME' not found (image)");
+
 #[async_trait(?Send)]
 pub trait ImageProvider {
     /// Saves raw image bytes and returns a unique ID for it.
@@ -29,7 +32,7 @@ pub struct DesktopImageProvider {
 #[cfg(not(target_arch = "wasm32"))]
 impl DesktopImageProvider {
     pub async fn new() -> Result<Self, StorageError> {
-        let image_dir = directories::ProjectDirs::from("com", "vtoolbox", "vtoolbox")
+        let image_dir = directories::ProjectDirs::from("com", PROJECT_NAME, PROJECT_NAME)
             .map(|dirs| dirs.data_dir().join("images"))
             .unwrap_or_else(|| std::path::PathBuf::from("./images"));
 
@@ -87,24 +90,27 @@ pub struct WebImageProvider {
 impl WebImageProvider {
     pub fn new() -> Self {
         Self {
-            db_name: "vtoolbox_images".to_string(),
+            db_name: PROJECT_NAME.to_string(),
             store_name: "images".to_string(),
         }
     }
 
-        async fn get_db(&self) -> Result<idb::Database, StorageError> {
+    async fn get_db(&self) -> Result<idb::Database, StorageError> {
         // Required in idb 0.6 to access the .database() method on VersionChangeEvent
         use idb::DatabaseEvent;
 
-        let factory = idb::Factory::new().map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
+        let factory =
+            idb::Factory::new().map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         let mut req = factory
             .open(&self.db_name, Some(1))
             .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
 
         let store_name = self.store_name.clone();
         req.on_upgrade_needed(move |evt| {
-            let db = evt.database().expect("Failed to get database during upgrade");
-            
+            let db = evt
+                .database()
+                .expect("Failed to get database during upgrade");
+
             // Use .contains() instead of .any() for cleaner Vec<String> checking
             if !db.store_names().contains(&store_name) {
                 let mut params = idb::ObjectStoreParams::new();
@@ -115,7 +121,9 @@ impl WebImageProvider {
             }
         });
 
-        let db = req.await.map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
+        let db = req
+            .await
+            .map_err(|e| StorageError::WebStorage(format!("{:?}", e)))?;
         Ok(db)
     }
 }

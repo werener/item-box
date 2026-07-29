@@ -3,6 +3,9 @@ use super::inventory::Inventory;
 use crate::error::StorageError;
 use std::{path::PathBuf, sync::Arc};
 
+const PROJECT_NAME: &str =
+    option_env!("PROJECT_NAME").expect("env variable 'PROJECT_NAME' not found (image)");
+
 pub trait Storage {
     fn save(&self, inventory: &Inventory) -> Result<(), StorageError>;
     fn load(&self) -> Result<Inventory, StorageError>;
@@ -34,7 +37,7 @@ impl JsonFileStorage {
     }
 
     fn default_path() -> PathBuf {
-        directories::ProjectDirs::from("com", "vtoolbox", "vtoolbox")
+        directories::ProjectDirs::from("com", PROJECT_NAME, PROJECT_NAME)
             .map(|dirs| dirs.data_dir().join("inventory.json"))
             .unwrap_or_else(|| PathBuf::from("./inventory.json"))
     }
