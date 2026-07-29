@@ -40,26 +40,27 @@ fn Tags(item: Item, inventory: Signal<Inventory>) -> Element {
         .collect();
 
     rsx! {
-        div { class: "flex px-0.5 gap-0.5 mt-auto items-center select-none",
+        div { class: "flex px-0.5 gap-0.5 mt-auto select-none",
             for tag in tags.clone().into_iter().take(3) {
-                div { class: "truncate relative group flex-1 max-w-[10ch]",
-                    div {
-                        class: "text-[12px] px-1 py-0.25 group-hover:pr-5",
-                        class: "rounded-xl truncate whitespace-nowrap block",
-                        style: "background-color: #{tag.bg_color}; color: #{tag.fg_color}",
+                div {
+                    class: "relative group rounded-xl",
+                    class: "text-[12px] px-1.5 max-w-[7ch]",
+                    style: "background-color: #{tag.bg_color}; color: #{tag.fg_color}",
+
+                    span { class: "whitespace-nowrap invisible", "{tag.name}" }
+                    span { class: "absolute truncate inset-0 px-1.5 group-hover:pr-4",
                         "{tag.name}"
-                        button {
-                            class: "absolute right-1 top-1/2 -translate-y-1/2",
-                            class: "w-4 h-4 rounded-full flex items-center justify-center text-[10px]",
-                            class: "bg-secondary-muted text-primary",
-                            class: "transition-opacity opacity-0 group-hover:opacity-80 ",
-                            onclick: move |_| {
-                                inventory.write().remove_tag_from_item(item.id, tag.id);
-                            },
-                            "×"
-                        }
                     }
-                
+
+                    button {
+                        class: "absolute right-0.5 top-1/2 -translate-y-1/2",
+                        class: "min-w-4 min-h-4 rounded-full bg-secondary-muted text-primary text-xs",
+                        class: "opacity-0 group-hover:opacity-70 transition-opacity",
+                        onclick: move |_| {
+                            inventory.write().remove_tag_from_item(item.id, tag.id);
+                        },
+                        "✗"
+                    }
                 }
             }
             if tags.len() > 3 {
