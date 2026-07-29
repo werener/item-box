@@ -291,7 +291,7 @@ fn PhotoData(item: Signal<Item>) -> Element {
             class: "p-2 rounded border border-secondary-muted",
             div {
                 class: "flex flex-1 flex-wrap content-start hide-scrollbar overflow-y-auto",
-                class: "gap-1 p-1 max-h-40 shrink-0",
+                class: "gap-1 p-1 max-h-32 shrink-0",
                 class: "rounded border-r border-secondary-muted",
                 class: if is_drag_over() { "bg-accent/10 border-accent" },
                 style: "scrollbar-width: none; -ms-overflow-style: none",
@@ -531,7 +531,7 @@ fn TagData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
             // Selected tags
             div { class: "flex flex-col min-w-0 gap-1",
                 span { class: "text-xs font-semibold text-secondary", "Selected" }
-                div { class: "flex flex-wrap gap-1 max-h-12 overflow-y-auto p-1",
+                div { class: "flex flex-wrap gap-1 max-h-24 sm:max-h-12 overflow-y-auto p-1",
                     if item.read().tags.is_empty() {
                         span { class: "text-xs text-secondary-muted italic px-1",
                             "Attach tags to this item"
@@ -554,7 +554,7 @@ fn TagData(item: Signal<Item>, inventory: Signal<Inventory>) -> Element {
             // Available tags
             div { class: "flex flex-col min-w-0",
                 span { class: "text-xs font-semibold text-secondary", "Available" }
-                div { class: "flex flex-wrap gap-1 max-h-12 overflow-y-auto p-1",
+                div { class: "flex flex-wrap gap-1 max-h-24 sm:max-h-12 overflow-y-auto p-1",
 
                     if available_tags.read().is_empty() {
                         span { class: "text-xs text-secondary-muted italic px-1", "No available tags" }
