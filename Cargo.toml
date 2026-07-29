@@ -1,5 +1,5 @@
 [package]
-name = "v-tool-box"
+name = "item-box"
 version = "0.1.0"
 authors = ["werener <lenyazhuk@yandex.ru>"]
 edition = "2021"

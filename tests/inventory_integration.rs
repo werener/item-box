@@ -1,6 +1,6 @@
 // tests/inventory_integration.rs
 use uuid::Uuid;
-use v_tool_box::core::{builder::ItemBuilder, inventory::Inventory, models::*};
+use item_box::core::{builder::ItemBuilder, inventory::Inventory, models::*};
 
 fn dummy_color() -> Color {
     Color { r: 255, g: 0, b: 0 }

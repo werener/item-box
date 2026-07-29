@@ -3,7 +3,7 @@
 [web.app]
 
 # HTML title tag content
-title = "v-tool-box"
+title = "item-box"
 
 # include `assets` in web platform
 [web.resource]

@@ -1,7 +1,7 @@
 // tests/storage_integration.r
 use std::path::PathBuf;
 use uuid::Uuid;
-use v_tool_box::core::{
+use item_box::core::{
     builder::ItemBuilder,
     inventory::Inventory,
     models::*,
