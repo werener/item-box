@@ -3,6 +3,7 @@ use crate::error::StorageError;
 use async_trait::async_trait;
 use std::sync::Arc;
 use uuid::Uuid;
+use base64::{Engine as _, engine::general_purpose::STANDARD};
 
 const PROJECT_NAME: &str =
     option_env!("PROJECT_NAME").expect("env variable 'PROJECT_NAME' not found (image)");
@@ -49,7 +50,6 @@ impl ImageProvider for DesktopImageProvider {
         let id = Uuid::new_v4();
         let file_path = self.image_dir.join(id.to_string());
 
-        // Updated: Non-blocking async write
         tokio::fs::write(&file_path, data).await?;
 
         Ok(id)
@@ -59,9 +59,15 @@ impl ImageProvider for DesktopImageProvider {
         let file_path = self.image_dir.join(id.to_string());
 
         if tokio::fs::try_exists(&file_path).await? {
-            let canonical_path = tokio::fs::canonicalize(&file_path).await?;
-            let path_str = canonical_path.to_string_lossy().replace('\\', "/");
-            Ok(Some(format!("file://{}", path_str)))
+            let bytes = tokio::fs::read(&file_path).await?;
+
+            let mime_type = infer::get(&bytes)
+                .map(|kind| kind.mime_type())
+                .unwrap_or("application/octet-stream");
+
+            let b64 = STANDARD.encode(&bytes);
+
+            Ok(Some(format!("data:{};base64,{}", mime_type, b64)))
         } else {
             Ok(None)
         }

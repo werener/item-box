@@ -9,7 +9,7 @@ use std::sync::Arc;
 /// ImageSlider is a component that renders images and allows swiping through them.
 #[component]
 pub fn ImageSlider(item_id: ItemId, inventory: Signal<Inventory>) -> Element {
-    let image_provider: Signal<Option<Arc<dyn ImageProvider>>> = use_context();
+    let image_provider = use_context::<Resource<Option<Arc<dyn ImageProvider>>>>();
 
     let images_resource = use_resource(move || {
         let images = inventory
@@ -18,9 +18,10 @@ pub fn ImageSlider(item_id: ItemId, inventory: Signal<Inventory>) -> Element {
             .map(|i| i.images.clone())
             .unwrap_or_default();
 
-        resolve_images(images, image_provider())
-    });
+        let provider = image_provider().flatten();
 
+        resolve_images(images, provider)
+    });
     let mut state = SliderState::new(images_resource);
 
     rsx! {
@@ -82,13 +83,18 @@ async fn resolve_images(
     images: Vec<ImageId>,
     provider: Option<Arc<dyn ImageProvider>>,
 ) -> Vec<String> {
-    if images.is_empty() || provider.is_none() {
+    if images.is_empty() {
         return vec![asset!("/assets/images/tool-placeholder.png").to_string()];
     }
 
+    // Clean early return if provider is not yet initialized
+    let Some(provider) = provider else {
+        return vec![asset!("/assets/images/tool-placeholder.png").to_string()];
+    };
+
     let mut resolved_images = Vec::new();
     for image in images {
-        if let Ok(Some(uri)) = provider.as_ref().unwrap().get_image_uri(image).await {
+        if let Ok(Some(uri)) = provider.get_image_uri(image).await {
             resolved_images.push(uri);
         }
     }
@@ -107,10 +113,12 @@ struct SliderState {
     current_image: Memo<String>,
     images_len: Memo<usize>,
 }
+
 impl SliderState {
     fn new(images_resource: Resource<Vec<String>>) -> Self {
         let mut current_index = use_signal(|| 0);
         let touch_start_x = use_signal(|| None::<f64>);
+
         let current_image = use_memo(move || {
             let imgs = images_resource()
                 .unwrap_or_else(|| vec![asset!("/assets/images/tool-placeholder.png").to_string()]);
@@ -119,19 +127,21 @@ impl SliderState {
                 .cloned()
                 .unwrap_or_else(|| asset!("/assets/images/tool-placeholder.png").to_string())
         });
+
         let images_len = use_memo(move || images_resource().map(|v| v.len()).unwrap_or(0));
 
         use_effect(move || {
             let len = images_len();
+            let idx = current_index();
 
-            if len > 0 && (current_index)() >= len {
+            if len > 0 && idx >= len {
                 current_index.set(len - 1);
             } else if len == 0 {
                 current_index.set(0);
             }
         });
 
-        SliderState {
+        Self {
             current_index,
             touch_start_x,
             current_image,

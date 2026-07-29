@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 
 use crate::{
     core::{
-        image::{create_image_provider, ImageProvider},
+        image::create_image_provider,
         storage::{create_storage, Storage},
     },
     ui::state::AppState,
@@ -33,25 +33,19 @@ pub fn autofocus_by_id(id: impl Into<String>) {
 }
 
 pub fn use_image_provider() {
-    let image_provider: Signal<Option<Arc<dyn ImageProvider>>> = use_signal(|| None);
-    let app_state: AppState = use_context();
+    let mut app_state: AppState = use_context();
+    
+    let image_provider = use_resource(move || async move {
+        match create_image_provider().await {
+            Ok(provider) => Some(provider),
+            Err(e) => {
+                app_state.notifications.send_error(&format!("Failed to initialize image storage: {}", e));
+                None
+            }
+        }
+    });
 
     use_context_provider(|| image_provider);
-
-    use_effect(move || {
-        let mut provider_signal = image_provider;
-        let mut app_state = app_state;
-
-        spawn(async move {
-            if let Ok(provider) = create_image_provider().await {
-                provider_signal.set(Some(provider));
-            } else {
-                app_state
-                    .notifications
-                    .send_error("Cannot create a folder for storing images.");
-            }
-        });
-    });
 }
 
 pub fn use_storage() -> Arc<dyn Storage> {
