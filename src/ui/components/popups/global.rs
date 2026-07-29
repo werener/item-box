@@ -16,7 +16,10 @@ use crate::{
         state::AppState,
     },
 };
-use dioxus::prelude::*;
+use dioxus::{
+    html::{FileData, HasFileData},
+    prelude::*,
+};
 use uuid::Uuid;
 
 #[component]
@@ -261,11 +264,28 @@ fn HeaderItemEditor() -> Element {
     }
 }
 
+fn handle_upload(files: Vec<FileData>, mut item: Signal<Item>) {
+    let image_provider = use_context::<Resource<Option<Arc<dyn ImageProvider>>>>();
+
+    let Some(provider) = image_provider().flatten() else {
+        return;
+    };
+
+    spawn(async move {
+        for file_data in files {
+            if let Ok(bytes) = file_data.read_bytes().await {
+                if let Ok(new_image_id) = provider.save_image(&bytes).await {
+                    item.write().images.push(new_image_id);
+                }
+            }
+        }
+    });
+}
 #[component]
 fn PhotoData(item: Signal<Item>) -> Element {
+    let mut is_drag_over = use_signal(|| false);
+
     rsx! {
-        style {
-        }
         div {
             class: "flex flex-row justify-between w-full gap-1",
             class: "p-2 rounded border border-secondary-muted",
@@ -273,7 +293,25 @@ fn PhotoData(item: Signal<Item>) -> Element {
                 class: "flex flex-1 flex-wrap content-start hide-scrollbar overflow-y-auto",
                 class: "gap-1 p-1 max-h-40 shrink-0",
                 class: "rounded border-r border-secondary-muted",
+                class: if is_drag_over() { "bg-accent/10 border-accent" },
                 style: "scrollbar-width: none; -ms-overflow-style: none",
+
+                ondragenter: move |e: Event<DragData>| {
+                    e.prevent_default();
+                    is_drag_over.set(true);
+                },
+                ondragover: move |e: Event<DragData>| {
+                    e.prevent_default();
+                },
+                ondragleave: move |e: Event<DragData>| {
+                    e.prevent_default();
+                    is_drag_over.set(false);
+                },
+                ondrop: move |e: Event<DragData>| {
+                    e.prevent_default();
+                    is_drag_over.set(false);
+                    handle_upload(e.files(), item);
+                },
 
                 if item.read().images.is_empty() {
                     div { class: "flex items-center justify-center w-full h-full min-h-[60px]",
@@ -359,43 +397,12 @@ fn PhotoThumbnail(image_id: Uuid, on_remove: Callback<Uuid>) -> Element {
 }
 #[component]
 fn ImageUploader(item: Signal<Item>) -> Element {
-    let mut is_uploading = use_signal(|| false);
-    let image_provider = use_context::<Resource<Option<Arc<dyn ImageProvider>>>>();
-
-    let handle_file_change = move |e: Event<FormData>| {
-        let files = e.files();
-        if files.is_empty() {
-            return;
-        }
-
-        let Some(provider) = image_provider().flatten() else {
-            return;
-        };
-
-        is_uploading.set(true);
-
-        spawn(async move {
-            for file_data in files {
-                if let Ok(bytes) = file_data.read_bytes().await {
-                    if let Ok(new_image_id) = provider.save_image(&bytes).await {
-                        item.write().images.push(new_image_id);
-                    }
-                }
-            }
-            is_uploading.set(false);
-        });
-    };
-
     rsx! {
         label {
             r#for: "photo-file-picker",
             class: "flex items-center justify-center cursor-pointer disabled:opacity-50 hover:text-accent-hover transition-colors",
             title: "Add photo",
-            if is_uploading() {
-                "..."
-            } else {
-                "+"
-            }
+            "+"
         }
         input {
             id: "photo-file-picker",
@@ -403,7 +410,7 @@ fn ImageUploader(item: Signal<Item>) -> Element {
             multiple: true,
             accept: "image/*",
             class: "hidden",
-            onchange: handle_file_change,
+            onchange: move |e| { handle_upload(e.files(), item) },
         }
     }
 }
